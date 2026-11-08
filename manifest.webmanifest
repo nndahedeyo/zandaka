@@ -1,0 +1,16 @@
+{
+  "name": "残高帳 Zandaka",
+  "short_name": "残高帳",
+  "description": "保有銘柄と枚数から、いまの評価額を確かめる暗号資産の残高帳。Check what your crypto is worth now, with no keys or addresses.",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F8",
+  "theme_color": "#1B5E63",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

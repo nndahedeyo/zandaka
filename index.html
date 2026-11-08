@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>残高帳 Zandaka</title>
+<meta name="description" content="保有銘柄と枚数から、いまの評価額を確かめる暗号資産の残高帳。Check what your crypto is worth now. No keys or addresses.">
+<meta name="theme-color" content="#1B5E63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="残高帳">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#F3F5F8; --card:#FFFFFF; --ink:#16202E; --muted:#5B6676; --line:#DDE3EA;
+  --accent:#1B5E63; --accent-ink:#FFFFFF; --accent-soft:#E1EEEE;
+  --up:#1F7A4D; --down:#B23A3A; --warn:#A07A16;
+  --f:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0F1520; --card:#171F2C; --ink:#E6EBF2; --muted:#9AA6B6; --line:#2A3544;
+  --accent:#6FC2C3; --accent-ink:#0F1520; --accent-soft:#1B3236;
+  --up:#5CC48E; --down:#E57373; --warn:#D9B64E; color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.5}
+body{padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) calc(96px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+main{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-top:12px}
+header.top{display:flex;justify-content:space-between;align-items:center}
+header.top h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.04em}
+.icon-btn{border:0;background:none;padding:8px;border-radius:10px;color:var(--ink);cursor:pointer;min-width:40px;min-height:40px}
+.icon-btn:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.icon-btn svg{width:22px;height:22px;display:block}
+.total{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.total .label{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.total .amt{font-size:34px;font-weight:700;letter-spacing:-.01em;word-break:break-all}
+.total .sub{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);margin-top:10px}
+.bar i{display:block;height:100%}
+.status{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.status .err{color:var(--warn)}
+.up{color:var(--up)} .down{color:var(--down)}
+ul.list{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+ul.list li{border-top:1px solid var(--line)}
+ul.list li:first-child{border-top:0}
+.row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;width:100%;cursor:pointer}
+.row:active{background:var(--accent-soft)}
+.badge{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--mono)}
+.row .mid{min-width:0;display:flex;flex-direction:column}
+.row .sym{font-weight:700}
+.row .name{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .right{text-align:right;display:flex;flex-direction:column;align-items:flex-end}
+.row .val{font-weight:600}
+.row .meta{font-size:12px;color:var(--muted)}
+.row .tgt{font-size:11px}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty h2{margin:0;font-size:18px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.sub{background:var(--accent-soft);color:var(--ink)}
+.btn.danger{background:none;color:var(--down);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+.fab{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:30px;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;display:grid;place-items:center}
+.fab svg{width:28px;height:28px}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet h2{margin:0;font-size:18px}
+.sheet .head{display:flex;justify-content:space-between;align-items:center}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.inp{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px 14px;font-size:17px;width:100%;color:var(--ink)}
+textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
+.results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.results button{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;padding:10px 8px;border-radius:10px;cursor:pointer}
+.results button:hover,.results button:focus-visible{background:var(--accent-soft)}
+.results .rk{margin-left:auto;font-size:11px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .btn{flex:1}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:90vw}
+.hidden-amt .amtv{filter:blur(7px)}
+.hr{border:0;border-top:1px solid var(--line);width:100%;margin:0}
+.note a{color:var(--accent)}
+.sect{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:4px 4px -6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main id="app">
+  <header class="top">
+    <h1 id="app-title">残高帳</h1>
+    <div>
+      <button class="icon-btn" id="btn-eye" aria-label="金額を隠す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="icon-btn" id="btn-refresh" aria-label="価格を更新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="icon-btn" id="btn-settings" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+  <div id="view"></div>
+</main>
+<button class="fab" id="btn-add" aria-label="銘柄を追加"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<div id="layer"></div>
+
+<script>
+"use strict";
+/* ===== 言語 / Language ===== */
+const L = {
+  ja: {
+    app: "残高帳", hide: "金額を隠す", show: "金額を表示", refresh: "価格を更新", settings: "設定", add: "銘柄を追加", close: "閉じる",
+    noStore: "この端末に保存できませんでした。プライベートブラウズを解除してください",
+    busy: "価格サービスが混み合っています。1分ほど待ってから更新してください",
+    priceFail: s => "価格を取得できませんでした（" + s + "）", netFail: "通信できませんでした。前回の価格を表示しています",
+    updated: "価格を更新しました", searchBusy: "価格サービスが混み合っています。少し待ってから検索してください", searchFail: "検索できませんでした",
+    never: "まだ取得していません", justNow: "たった今", minAgo: m => m + "分前",
+    emptyH: "保有している銘柄を登録しましょう", emptyP: "右下の＋から銘柄を探して、持っている枚数を入れるだけです。鍵やアドレスは使いません。",
+    tryEx: "例を入れてみる", exNote: "「例を入れてみる」は架空の枚数です。あとで削除できます。",
+    total: "評価額の合計", h24: "24時間", coins: n => n + "銘柄", shareAria: "銘柄ごとの割合",
+    updating: "更新中…", priceAt: "価格：", sampleNote: "いま表示しているのは例の枚数です。各銘柄を押して、実際の枚数に直すか削除してください。",
+    target: "目標", devNote: "目標の割合から5ポイント以上ずれた銘柄は赤で表示します。",
+    privacy: "この端末の外に出るのは、価格を問い合わせる銘柄名だけです。枚数・評価額はこの端末にだけ保存されます。価格は<a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>から取得しています。",
+    qLabel: "銘柄名またはシンボル", qPh: "例：BTC、ethereum、hype",
+    qHint: "2文字以上で検索します。同じ名前の偽物に注意して、時価総額の順位（#）が上位のものを選んでください。",
+    searching: "検索中…", pick: "選ぶと、枚数の入力に進みます。", none: "見つかりませんでした。別の名前で試してください。", noRank: "順位なし",
+    netSearch: "通信できませんでした。電波の良い場所で試してください。",
+    amt: "保有している枚数", tgt: "目標の割合（任意、%）", tgtPh: "例：30", memo: "メモ（任意）", memoPh: "例：SafePalで保管",
+    multi: "同じ銘柄を別の場所でも持っているときは、別々に登録できます。合計は自動で足し合わされます。",
+    save: "保存", addBtn: "追加", del: "削除", delQ: s => s + " を一覧から削除しますか？", delYes: "削除する", cancel: "やめる",
+    badAmt: "枚数は0より大きい数字で入れてください（例：0.25）。", badTgt: "目標の割合は0〜100の数字で入れてください。",
+    saved: "保存しました", added: s => s + " を追加しました", deleted: "削除しました",
+    lang: "言語", cur: "表示する通貨", intv: "自動更新の間隔", intvOpts: ["自動更新しない", "1分ごと", "2分ごと", "5分ごと"],
+    key: "CoinGeckoのDemo APIキー（任意）", keyPh: "なしでも使えます", keyNote: "キーなしでも動きます。更新に失敗することが増えたら、CoinGeckoで無料のDemoキーを作って入れると安定します。",
+    backup: "バックアップ", backupNote: "機種変更やブラウザのデータ削除に備えて、登録内容を書き出せます。中身は銘柄と枚数だけです。",
+    copy: "文字としてコピー", file: "ファイルに保存", impLabel: "書き出した内容を貼り付けて読み込む", imp: "読み込む",
+    copied: "コピーしました。メモアプリなどに貼り付けて保管してください。", copyFallback: "下の欄に表示しました。全体を選んでコピーしてください。",
+    fileSaved: "ファイルを保存しました。", impOk: n => n + "銘柄を読み込みました", impFail: "読み込めませんでした。書き出した内容をそのまま貼り付けてください。",
+    wipe: "すべて消去", wipeQ: "登録した銘柄と枚数をすべて消去します。元に戻せません。", wipeYes: "消去する", wiped: "消去しました",
+    safety: "残高帳は送金や署名の機能を持たず、秘密鍵・復元フレーズ・ウォレットのアドレスを一切扱いません。これらの入力を求める画面が出たら、偽物です。",
+    jpy: "日本円（JPY）", usd: "米ドル（USD）", locale: "ja-JP"
+  },
+  en: {
+    app: "Zandaka", hide: "Hide amounts", show: "Show amounts", refresh: "Refresh prices", settings: "Settings", add: "Add a coin", close: "Close",
+    noStore: "Couldn't save on this device. Turn off private browsing and try again.",
+    busy: "The price service is busy. Wait about a minute, then refresh.",
+    priceFail: s => "Couldn't load prices (" + s + ")", netFail: "No connection. Showing the last prices.",
+    updated: "Prices updated", searchBusy: "The price service is busy. Wait a moment, then search again.", searchFail: "Search failed",
+    never: "Not loaded yet", justNow: "just now", minAgo: m => m + " min ago",
+    emptyH: "Add the coins you hold", emptyP: "Tap + to find a coin and enter how many you hold. No keys or addresses needed.",
+    tryEx: "Try an example", exNote: "The example uses made-up amounts. You can delete them later.",
+    total: "Total value", h24: "24h", coins: n => n + (n === 1 ? " coin" : " coins"), shareAria: "Share by coin",
+    updating: "Updating…", priceAt: "Prices: ", sampleNote: "You're looking at example amounts. Tap each coin to enter your real amount or delete it.",
+    target: "Target", devNote: "Coins 5 points or more away from their target share are shown in red.",
+    privacy: "Only the names of the coins you look up leave this device. Amounts and values are stored on this device only. Prices come from <a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>.",
+    qLabel: "Coin name or symbol", qPh: "e.g. BTC, ethereum, hype",
+    qHint: "Type at least 2 characters. Watch out for look-alikes: pick the one with the higher market-cap rank (#).",
+    searching: "Searching…", pick: "Pick one to enter your amount.", none: "No matches. Try another name.", noRank: "unranked",
+    netSearch: "No connection. Try again with a better signal.",
+    amt: "Amount you hold", tgt: "Target share (optional, %)", tgtPh: "e.g. 30", memo: "Note (optional)", memoPh: "e.g. hardware wallet",
+    multi: "If you hold the same coin in several places, add each one separately. They're added up automatically.",
+    save: "Save", addBtn: "Add", del: "Delete", delQ: s => "Remove " + s + " from the list?", delYes: "Delete", cancel: "Cancel",
+    badAmt: "Enter an amount greater than 0 (e.g. 0.25).", badTgt: "Enter a target share between 0 and 100.",
+    saved: "Saved", added: s => s + " added", deleted: "Deleted",
+    lang: "Language", cur: "Currency", intv: "Auto refresh", intvOpts: ["Off", "Every minute", "Every 2 minutes", "Every 5 minutes"],
+    key: "CoinGecko Demo API key (optional)", keyPh: "Works without one", keyNote: "The app works without a key. If refreshes start failing often, create a free Demo key at CoinGecko and enter it here.",
+    backup: "Backup", backupNote: "Export your list in case you change phones or clear browser data. It contains only coins and amounts.",
+    copy: "Copy as text", file: "Save to file", impLabel: "Paste an export to restore it", imp: "Restore",
+    copied: "Copied. Paste it into a notes app to keep it.", copyFallback: "Shown in the box below. Select all of it and copy.",
+    fileSaved: "File saved.", impOk: n => n + " coins restored", impFail: "Couldn't restore. Paste the export exactly as it was saved.",
+    wipe: "Erase everything", wipeQ: "This erases every coin and amount you added. It can't be undone.", wipeYes: "Erase", wiped: "Erased",
+    safety: "Zandaka can't send or sign anything, and never asks for private keys, recovery phrases or wallet addresses. Any screen that asks for these is fake.",
+    jpy: "Japanese yen (JPY)", usd: "US dollar (USD)", locale: "en-US"
+  }
+};
+
+/* ===== 保存（この端末の中だけ） ===== */
+const KEY = "zandaka.v1";
+const sysLang = (navigator.language || "ja").toLowerCase().startsWith("ja") ? "ja" : "en";
+const DEFAULT = { holdings: [], prices: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false } };
+function fresh() { return JSON.parse(JSON.stringify(DEFAULT)); }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.holdings)) return Object.assign(fresh(), s, { settings: Object.assign({}, DEFAULT.settings, s.settings || {}) }); } catch (e) {}
+  return fresh();
+}
+let S = load();
+const t = k => L[S.settings.lang][k];
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t("noStore")); } }
+
+/* ===== 価格サービス（CoinGecko） ===== */
+const API = "https://api.coingecko.com/api/v3";
+function apiUrl(path, params) {
+  const u = new URL(API + path);
+  Object.entries(params || {}).forEach(([k, v]) => u.searchParams.set(k, v));
+  if (S.settings.apiKey) u.searchParams.set("x_cg_demo_api_key", S.settings.apiKey);
+  return u.toString();
+}
+let fetching = false, lastError = "";
+async function refresh(manual) {
+  if (fetching) return;
+  const ids = [...new Set(S.holdings.map(h => h.id))];
+  if (!ids.length) { render(); return; }
+  fetching = true; lastError = ""; render();
+  try {
+    const cur = S.settings.currency;
+    const r = await fetch(apiUrl("/simple/price", { ids: ids.join(","), vs_currencies: cur, include_24hr_change: "true" }));
+    if (r.status === 429) throw new Error(t("busy"));
+    if (!r.ok) throw new Error(t("priceFail")(r.status));
+    const j = await r.json();
+    ids.forEach(id => { if (j[id] && j[id][cur] != null) S.prices[id] = { p: j[id][cur], c: j[id][cur + "_24h_change"] ?? null, cur }; });
+    S.updatedAt = Date.now(); save();
+    if (manual) toast(t("updated"));
+  } catch (e) {
+    lastError = e.message && !/Failed to fetch|Load failed|NetworkError/.test(e.message) ? e.message : t("netFail");
+  } finally { fetching = false; render(); }
+}
+async function search(q) {
+  const r = await fetch(apiUrl("/search", { query: q }));
+  if (r.status === 429) throw new Error(t("searchBusy"));
+  if (!r.ok) throw new Error(t("searchFail"));
+  const j = await r.json();
+  return (j.coins || []).slice(0, 12).map(c => ({ id: c.id, sym: (c.symbol || "").toUpperCase(), name: c.name, rank: c.market_cap_rank }));
+}
+
+/* ===== 表示 ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CUR = { jpy: { code: "JPY", d: 0 }, usd: { code: "USD", d: 2 } };
+const loc = () => t("locale");
+function money(v) { if (v == null || isNaN(v)) return "—"; const c = CUR[S.settings.currency]; return new Intl.NumberFormat(loc(), { style: "currency", currency: c.code, maximumFractionDigits: Math.abs(v) < 1 ? 4 : c.d }).format(v); }
+function price(v) { if (v == null) return "—"; const c = CUR[S.settings.currency]; const d = v >= 1000 ? 0 : v >= 1 ? 2 : v >= 0.01 ? 4 : 8; return new Intl.NumberFormat(loc(), { style: "currency", currency: c.code, maximumFractionDigits: d, minimumFractionDigits: 0 }).format(v); }
+function qty(v) { return new Intl.NumberFormat(loc(), { maximumFractionDigits: 8 }).format(v); }
+function pct(v, sign) { if (v == null || isNaN(v)) return "—"; return (sign && v > 0 ? "+" : "") + v.toFixed(Math.abs(v) < 10 ? 2 : 1) + "%"; }
+function hue(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+function badge(h) { return `<span class="badge" style="background:hsl(${hue(h.id)} 45% 42%)" aria-hidden="true">${esc(h.sym.slice(0, 4))}</span>`; }
+function ago(ts) {
+  if (!ts) return t("never");
+  const m = Math.round((Date.now() - ts) / 60000), d = new Date(ts);
+  const hm = d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
+  const md = d.toLocaleDateString(loc(), { month: "numeric", day: "numeric" });
+  return (m < 1 ? t("justNow") : m < 60 ? t("minAgo")(m) : hm) + " (" + md + " " + hm + ")";
+}
+function applyChrome() {
+  const lang = S.settings.lang;
+  document.documentElement.lang = lang;
+  document.title = t("app");
+  $("#app-title").textContent = t("app");
+  const at = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if (at) at.content = t("app");
+  $("#btn-refresh").setAttribute("aria-label", t("refresh"));
+  $("#btn-settings").setAttribute("aria-label", t("settings"));
+  $("#btn-add").setAttribute("aria-label", t("add"));
+  $("#btn-eye").setAttribute("aria-label", S.settings.hide ? t("show") : t("hide"));
+}
+
+function compute() {
+  const rows = S.holdings.map(h => { const pr = S.prices[h.id]; const ok = pr && pr.cur === S.settings.currency; const v = ok ? pr.p * h.amount : null; return { h, p: ok ? pr.p : null, c: ok ? pr.c : null, v }; });
+  const total = rows.reduce((a, r) => a + (r.v || 0), 0);
+  const prev = rows.reduce((a, r) => a + (r.v != null && r.c != null ? r.v / (1 + r.c / 100) : (r.v || 0)), 0);
+  rows.forEach(r => r.share = total > 0 && r.v != null ? r.v / total * 100 : null);
+  rows.sort((a, b) => (b.v ?? -1) - (a.v ?? -1));
+  return { rows, total, chg: total - prev, chgPct: prev > 0 ? (total / prev - 1) * 100 : null };
+}
+
+function render() {
+  applyChrome();
+  document.body.classList.toggle("hidden-amt", !!S.settings.hide);
+  const v = $("#view");
+  if (!S.holdings.length) {
+    v.innerHTML = `<section class="empty">
+      <h2>${t("emptyH")}</h2>
+      <p class="muted" style="margin:0">${t("emptyP")}</p>
+      <div class="actions" style="width:100%"><button class="btn" id="e-add">${t("add")}</button><button class="btn sub" id="e-sample">${t("tryEx")}</button></div>
+      <p class="note" style="margin:0">${t("exNote")}</p>
+    </section><p class="note">${t("privacy")}</p>`;
+    $("#e-add").onclick = openAdd;
+    $("#e-sample").onclick = () => { S.holdings = [
+      { uid: "ex1", id: "bitcoin", sym: "BTC", name: "Bitcoin", amount: 0.03, target: 50, sample: true },
+      { uid: "ex2", id: "ethereum", sym: "ETH", name: "Ethereum", amount: 0.5, target: 30, sample: true },
+      { uid: "ex3", id: "solana", sym: "SOL", name: "Solana", amount: 5, target: 20, sample: true }]; save(); render(); refresh(); };
+    return;
+  }
+  const { rows, total, chg, chgPct } = compute();
+  const anyTarget = S.holdings.some(h => h.target > 0);
+  const cls = chg > 0 ? "up" : chg < 0 ? "down" : "";
+  const sample = S.holdings.some(h => h.sample);
+  v.innerHTML = `
+    <section class="total" aria-live="polite">
+      <span class="label">${t("total")}</span>
+      <span class="amt num amtv">${money(total)}</span>
+      <span class="sub"><span class="num ${cls}">${t("h24")} <span class="amtv">${chg >= 0 ? "+" : ""}${money(chg)}</span> (${pct(chgPct, true)})</span><span class="muted">${t("coins")(rows.length)}</span></span>
+      <div class="bar" role="img" aria-label="${t("shareAria")}">${rows.filter(r => r.share).map(r => `<i style="width:${r.share}%;background:hsl(${hue(r.h.id)} 45% 42%)" title="${esc(r.h.sym)} ${pct(r.share)}"></i>`).join("")}</div>
+    </section>
+    <div class="status"><span>${fetching ? t("updating") : t("priceAt") + ago(S.updatedAt)}</span>${lastError ? `<span class="err">${esc(lastError)}</span>` : ""}</div>
+    ${sample ? `<p class="note" style="margin:0">${t("sampleNote")}</p>` : ""}
+    <ul class="list">${rows.map(r => {
+      const dev = anyTarget && r.h.target > 0 && r.share != null ? r.share - r.h.target : null;
+      return `<li><button class="row" data-id="${esc(r.h.uid)}">
+        ${badge(r.h)}
+        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>
+        <span class="right"><span class="val num amtv">${money(r.v)}</span>
+          <span class="meta num"><span class="${r.c > 0 ? "up" : r.c < 0 ? "down" : ""}">${pct(r.c, true)}</span> · ${pct(r.share)}</span>
+          ${dev != null ? `<span class="tgt num ${Math.abs(dev) >= 5 ? "down" : "muted"}">${t("target")} ${pct(r.h.target)} (${dev > 0 ? "+" : ""}${dev.toFixed(1)})</span>` : ""}
+        </span></button></li>`; }).join("")}</ul>
+    ${anyTarget ? `<p class="note" style="margin:0">${t("devNote")}</p>` : ""}
+    <p class="note">${t("privacy")}</p>`;
+  v.querySelectorAll(".row").forEach(b => b.onclick = () => openEdit(b.dataset.id));
+}
+
+/* ===== シート（追加・編集・設定） ===== */
+function sheet(html, onMount) {
+  const Ly = $("#layer");
+  Ly.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  $("#scrim").onclick = e => { if (e.target.id === "scrim") close(); };
+  Ly.querySelectorAll("[data-close]").forEach(b => b.onclick = close);
+  onMount && onMount(Ly);
+}
+function close() { $("#layer").innerHTML = ""; }
+const closeBtn = () => `<button class="icon-btn" data-close aria-label="${t("close")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+const toHalf = s => String(s).replace(/[０-９．，]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0)).replace(/,/g, "");
+
+function openAdd() {
+  sheet(`<div class="head"><h2>${t("add")}</h2>${closeBtn()}</div>
+    <label class="f" for="q">${t("qLabel")}<input class="inp" id="q" placeholder="${t("qPh")}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></label>
+    <p class="note" id="s-msg" style="margin:0">${t("qHint")}</p>
+    <ul class="results" id="res"></ul>`, () => {
+    const q = $("#q"); let tm;
+    setTimeout(() => q.focus(), 50);
+    q.oninput = () => { clearTimeout(tm); tm = setTimeout(async () => {
+      const s = q.value.trim(); if (s.length < 2) { $("#res").innerHTML = ""; return; }
+      $("#s-msg").textContent = t("searching");
+      try {
+        const rs = await search(s);
+        $("#s-msg").textContent = rs.length ? t("pick") : t("none");
+        $("#res").innerHTML = rs.map((c, i) => `<li><button data-i="${i}">${badge(c)}<span><b>${esc(c.sym)}</b><br><span class="muted" style="font-size:13px">${esc(c.name)}</span></span><span class="rk">${c.rank ? "#" + c.rank : t("noRank")}</span></button></li>`).join("");
+        $("#res").querySelectorAll("button").forEach(b => b.onclick = () => openAmount(rs[+b.dataset.i]));
+      } catch (e) { $("#s-msg").textContent = e.message && !/Failed to fetch|Load failed|NetworkError/.test(e.message) ? e.message : t("netSearch"); }
+    }, 350); };
+  });
+}
+function openAmount(c, h) {
+  const editing = !!h;
+  sheet(`<div class="head"><h2>${esc(c.sym)} <span class="muted" style="font-size:14px;font-weight:400">${esc(c.name)}</span></h2>${closeBtn()}</div>
+    <label class="f" for="amt">${t("amt")}<input class="inp num" id="amt" inputmode="decimal" placeholder="0.00" value="${editing ? h.amount : ""}"></label>
+    <label class="f" for="tgt">${t("tgt")}<input class="inp num" id="tgt" inputmode="decimal" placeholder="${t("tgtPh")}" value="${editing && h.target ? h.target : ""}"></label>
+    <label class="f" for="memo">${t("memo")}<input class="inp" id="memo" placeholder="${t("memoPh")}" value="${editing ? esc(h.memo || "") : ""}"></label>
+    <p class="note" id="a-msg" style="margin:0">${t("multi")}</p>
+    <div class="actions"><button class="btn" id="a-save">${editing ? t("save") : t("addBtn")}</button>${editing ? `<button class="btn danger" id="a-del">${t("del")}</button>` : ""}</div>
+    ${editing ? `<div id="confirm" hidden><p style="margin:0">${esc(t("delQ")(c.sym))}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="a-del2">${t("delYes")}</button><button class="btn sub" id="a-cancel">${t("cancel")}</button></div></div>` : ""}`, () => {
+    setTimeout(() => $("#amt").focus(), 50);
+    const err = m => { $("#a-msg").textContent = m; $("#a-msg").style.color = "var(--down)"; };
+    $("#a-save").onclick = () => {
+      const a = parseFloat(toHalf($("#amt").value));
+      const tv = $("#tgt").value.trim(); const tg = tv ? parseFloat(toHalf(tv)) : 0;
+      if (!(a > 0)) return err(t("badAmt"));
+      if (tv && !(tg >= 0 && tg <= 100)) return err(t("badTgt"));
+      const memo = $("#memo").value.trim().slice(0, 60);
+      if (editing) { Object.assign(h, { amount: a, target: tg, memo }); delete h.sample; }
+      else S.holdings.push({ uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: c.id, sym: c.sym, name: c.name, amount: a, target: tg, memo });
+      save(); close(); render(); toast(editing ? t("saved") : t("added")(c.sym));
+      if (!editing) refresh();
+    };
+    if (editing) {
+      $("#a-del").onclick = () => { $("#confirm").hidden = false; $("#a-del").disabled = true; };
+      $("#a-cancel").onclick = () => { $("#confirm").hidden = true; $("#a-del").disabled = false; };
+      $("#a-del2").onclick = () => { S.holdings = S.holdings.filter(x => x !== h); save(); close(); render(); toast(t("deleted")); };
+    }
+  });
+}
+function openEdit(uid) { const h = S.holdings.find(x => x.uid === uid); if (h) openAmount(h, h); }
+
+function openSettings() {
+  const st = S.settings;
+  const opt = (v, l, cur) => `<option value="${v}"${String(cur) === String(v) ? " selected" : ""}>${l}</option>`;
+  sheet(`<div class="head"><h2>${t("settings")}</h2>${closeBtn()}</div>
+    <label class="f" for="lang">${t("lang")}<select class="inp" id="lang">${opt("ja", "日本語", st.lang)}${opt("en", "English", st.lang)}</select></label>
+    <label class="f" for="cur">${t("cur")}<select class="inp" id="cur">${opt("jpy", t("jpy"), st.currency)}${opt("usd", t("usd"), st.currency)}</select></label>
+    <label class="f" for="intv">${t("intv")}<select class="inp" id="intv">${[0, 60, 120, 300].map((v, i) => opt(v, t("intvOpts")[i], st.interval)).join("")}</select></label>
+    <label class="f" for="key">${t("key")}<input class="inp" id="key" value="${esc(st.apiKey)}" placeholder="${t("keyPh")}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <p class="note" style="margin:0">${t("keyNote")}</p>
+    <div class="actions"><button class="btn" id="s-save">${t("save")}</button></div>
+    <hr class="hr">
+    <h2 style="font-size:16px">${t("backup")}</h2>
+    <p class="note" style="margin:0">${t("backupNote")}</p>
+    <div class="actions"><button class="btn sub" id="b-copy">${t("copy")}</button><button class="btn sub" id="b-file">${t("file")}</button></div>
+    <label class="f" for="imp">${t("impLabel")}<textarea class="inp" id="imp" placeholder='{"holdings":[...]}'></textarea></label>
+    <div class="actions"><button class="btn sub" id="b-imp">${t("imp")}</button></div>
+    <p class="note" id="b-msg" style="margin:0"></p>
+    <hr class="hr">
+    <div class="actions"><button class="btn danger" id="r-all">${t("wipe")}</button></div>
+    <div id="r-confirm" hidden><p style="margin:0">${t("wipeQ")}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="r-yes">${t("wipeYes")}</button><button class="btn sub" id="r-no">${t("cancel")}</button></div></div>
+    <p class="note" style="margin:0">${t("safety")}</p>`, () => {
+    $("#s-save").onclick = () => {
+      const curChanged = $("#cur").value !== st.currency;
+      Object.assign(st, { lang: $("#lang").value, currency: $("#cur").value, interval: +$("#intv").value, apiKey: $("#key").value.trim() });
+      save(); schedule(); close(); render(); toast(t("saved")); if (curChanged) refresh();
+    };
+    const dump = () => JSON.stringify({ app: "zandaka", v: 1, holdings: S.holdings.map(({ id, sym, name, amount, target, memo }) => ({ id, sym, name, amount, target, memo })) }, null, 1);
+    $("#b-copy").onclick = async () => { try { await navigator.clipboard.writeText(dump()); $("#b-msg").textContent = t("copied"); } catch (e) { $("#imp").value = dump(); $("#imp").select(); $("#b-msg").textContent = t("copyFallback"); } };
+    $("#b-file").onclick = () => { const b = new Blob([dump()], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "zandaka-backup-" + new Date().toISOString().slice(0, 10) + ".json"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); $("#b-msg").textContent = t("fileSaved"); };
+    $("#b-imp").onclick = () => {
+      try { const j = JSON.parse($("#imp").value); const hs = (j.holdings || []).filter(h => h && typeof h.id === "string" && h.amount > 0).map(h => ({ uid: Math.random().toString(36).slice(2, 10), id: h.id, sym: String(h.sym || h.id).toUpperCase().slice(0, 12), name: String(h.name || h.id).slice(0, 60), amount: +h.amount, target: +h.target || 0, memo: String(h.memo || "").slice(0, 60) }));
+        if (!hs.length) throw 0; S.holdings = hs; save(); close(); render(); refresh(); toast(t("impOk")(hs.length));
+      } catch (e) { $("#b-msg").textContent = t("impFail"); }
+    };
+    $("#r-all").onclick = () => { $("#r-confirm").hidden = false; };
+    $("#r-no").onclick = () => { $("#r-confirm").hidden = true; };
+    $("#r-yes").onclick = () => { const lang = st.lang; S = fresh(); S.settings.lang = lang; save(); close(); render(); toast(t("wiped")); };
+  });
+}
+
+let tt;
+function toast(m) { document.querySelectorAll(".toast").forEach(x => x.remove()); const d = document.createElement("div"); d.className = "toast"; d.setAttribute("role", "status"); d.textContent = m; document.body.appendChild(d); clearTimeout(tt); tt = setTimeout(() => d.remove(), 2200); }
+
+/* ===== 起動 ===== */
+let timer;
+function schedule() { clearInterval(timer); if (S.settings.interval > 0) timer = setInterval(() => { if (document.visibilityState === "visible") refresh(); }, S.settings.interval * 1000); }
+$("#btn-add").onclick = openAdd;
+$("#btn-settings").onclick = openSettings;
+$("#btn-refresh").onclick = () => refresh(true);
+$("#btn-eye").onclick = () => { S.settings.hide = !S.settings.hide; save(); render(); };
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && (!S.updatedAt || Date.now() - S.updatedAt > 60000)) refresh(); });
+S.holdings.forEach(x => { if (!x.uid) x.uid = Math.random().toString(36).slice(2, 10); });
+render(); schedule(); refresh();
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
