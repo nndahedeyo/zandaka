@@ -52,6 +52,8 @@ ul.list li{border-top:1px solid var(--line)}
 ul.list li:first-child{border-top:0}
 .row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;width:100%;cursor:pointer}
 .row:active{background:var(--accent-soft)}
+.badge.icon{background:var(--accent-soft);overflow:hidden}
+.badge.icon img{width:28px;height:28px;display:block}
 .badge{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--mono)}
 .row .mid{min-width:0;display:flex;flex-direction:column}
 .row .sym{font-weight:700}
@@ -124,7 +126,7 @@ const L = {
     total: "評価額の合計", h24: "24時間", coins: n => n + "銘柄", shareAria: "銘柄ごとの割合",
     updating: "更新中…", priceAt: "価格：", sampleNote: "いま表示しているのは例の枚数です。各銘柄を押して、実際の枚数に直すか削除してください。",
     target: "目標", devNote: "目標の割合から5ポイント以上ずれた銘柄は赤で表示します。",
-    privacy: "この端末の外に出るのは、価格を問い合わせる銘柄名だけです。枚数・評価額はこの端末にだけ保存されます。価格は<a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>から取得しています。",
+    privacy: "この端末の外に出るのは、価格とアイコンを問い合わせる銘柄名だけです。枚数・評価額はこの端末にだけ保存されます。価格は<a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>から取得しています。",
     qLabel: "銘柄名またはシンボル", qPh: "例：BTC、ethereum、hype",
     qHint: "2文字以上で検索します。同じ名前の偽物に注意して、時価総額の順位（#）が上位のものを選んでください。",
     searching: "検索中…", pick: "選ぶと、枚数の入力に進みます。", none: "見つかりませんでした。別の名前で試してください。", noRank: "順位なし",
@@ -156,7 +158,7 @@ const L = {
     total: "Total value", h24: "24h", coins: n => n + (n === 1 ? " coin" : " coins"), shareAria: "Share by coin",
     updating: "Updating…", priceAt: "Prices: ", sampleNote: "You're looking at example amounts. Tap each coin to enter your real amount or delete it.",
     target: "Target", devNote: "Coins 5 points or more away from their target share are shown in red.",
-    privacy: "Only the names of the coins you look up leave this device. Amounts and values are stored on this device only. Prices come from <a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>.",
+    privacy: "Only the names of the coins you look up, for prices and icons, leave this device. Amounts and values are stored on this device only. Prices come from <a href=\"https://www.coingecko.com/\" target=\"_blank\" rel=\"noopener\">CoinGecko</a>.",
     qLabel: "Coin name or symbol", qPh: "e.g. BTC, ethereum, hype",
     qHint: "Type at least 2 characters. Watch out for look-alikes: pick the one with the higher market-cap rank (#).",
     searching: "Searching…", pick: "Pick one to enter your amount.", none: "No matches. Try another name.", noRank: "unranked",
@@ -181,7 +183,7 @@ const L = {
 /* ===== 保存（この端末の中だけ） ===== */
 const KEY = "zandaka.v1";
 const sysLang = (navigator.language || "ja").toLowerCase().startsWith("ja") ? "ja" : "en";
-const DEFAULT = { holdings: [], prices: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false } };
+const DEFAULT = { holdings: [], prices: {}, icons: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false } };
 function fresh() { return JSON.parse(JSON.stringify(DEFAULT)); }
 function load() {
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.holdings)) return Object.assign(fresh(), s, { settings: Object.assign({}, DEFAULT.settings, s.settings || {}) }); } catch (e) {}
@@ -207,11 +209,14 @@ async function refresh(manual) {
   fetching = true; lastError = ""; render();
   try {
     const cur = S.settings.currency;
-    const r = await fetch(apiUrl("/simple/price", { ids: ids.join(","), vs_currencies: cur, include_24hr_change: "true" }));
+    const r = await fetch(apiUrl("/coins/markets", { vs_currency: cur, ids: ids.join(","), per_page: "250", price_change_percentage: "24h" }));
     if (r.status === 429) throw new Error(t("busy"));
     if (!r.ok) throw new Error(t("priceFail")(r.status));
     const j = await r.json();
-    ids.forEach(id => { if (j[id] && j[id][cur] != null) S.prices[id] = { p: j[id][cur], c: j[id][cur + "_24h_change"] ?? null, cur }; });
+    (Array.isArray(j) ? j : []).forEach(m => {
+      if (m.current_price != null) S.prices[m.id] = { p: m.current_price, c: m.price_change_percentage_24h ?? null, cur };
+      if (m.image && !S.icons[m.id]) cacheIcon(m.id, m.image);
+    });
     S.updatedAt = Date.now(); save();
     if (manual) toast(t("updated"));
   } catch (e) {
@@ -223,7 +228,7 @@ async function search(q) {
   if (r.status === 429) throw new Error(t("searchBusy"));
   if (!r.ok) throw new Error(t("searchFail"));
   const j = await r.json();
-  return (j.coins || []).slice(0, 12).map(c => ({ id: c.id, sym: (c.symbol || "").toUpperCase(), name: c.name, rank: c.market_cap_rank }));
+  return (j.coins || []).slice(0, 12).map(c => ({ id: c.id, sym: (c.symbol || "").toUpperCase(), name: c.name, rank: c.market_cap_rank, img: c.large || c.thumb }));
 }
 
 /* ===== 表示 ===== */
@@ -236,7 +241,24 @@ function price(v) { if (v == null) return "—"; const c = CUR[S.settings.curren
 function qty(v) { return new Intl.NumberFormat(loc(), { maximumFractionDigits: 8 }).format(v); }
 function pct(v, sign) { if (v == null || isNaN(v)) return "—"; return (sign && v > 0 ? "+" : "") + v.toFixed(Math.abs(v) < 10 ? 2 : 1) + "%"; }
 function hue(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
-function badge(h) { return `<span class="badge" style="background:hsl(${hue(h.id)} 45% 42%)" aria-hidden="true">${esc(h.sym.slice(0, 4))}</span>`; }
+/* アイコン：初回だけCoinGeckoの画像を取り、端末の中に保存する。取れなければ文字の目印を出す */
+const ICON_OK = /^(data:image\/|https:\/\/(coin-images|assets)\.coingecko\.com\/)/;
+const small = u => String(u || "").replace(/\/(large|thumb)\//, "/small/");
+async function cacheIcon(id, url) {
+  url = small(url); if (!ICON_OK.test(url)) return;
+  S.icons[id] = url; save();
+  try {
+    const r = await fetch(url); if (!r.ok) return;
+    const b = await r.blob(); if (b.size > 60000 || !b.type.startsWith("image/")) return;
+    const d = await new Promise((ok, ng) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = ng; f.readAsDataURL(b); });
+    S.icons[id] = d; save(); render();
+  } catch (e) { /* 画像の保存ができなくても、アドレスのまま表示する */ }
+}
+function badge(h) {
+  const src = S.icons[h.id] || (h.img && ICON_OK.test(small(h.img)) ? small(h.img) : "");
+  const txt = `<span class="badge" style="background:hsl(${hue(h.id)} 45% 42%)" aria-hidden="true">${esc(h.sym.slice(0, 4))}</span>`;
+  return src ? `<span class="badge icon" aria-hidden="true"><img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.outerHTML=this.parentNode.dataset.fb" ></span>`.replace('class="badge icon"', `class="badge icon" data-fb="${esc(txt)}"`) : txt;
+}
 function ago(ts) {
   if (!ts) return t("never");
   const m = Math.round((Date.now() - ts) / 60000), d = new Date(ts);
@@ -361,6 +383,7 @@ function openAmount(c, h) {
       const memo = $("#memo").value.trim().slice(0, 60);
       if (editing) { Object.assign(h, { amount: a, target: tg, memo }); delete h.sample; }
       else S.holdings.push({ uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: c.id, sym: c.sym, name: c.name, amount: a, target: tg, memo });
+      if (c.img && !S.icons[c.id]) cacheIcon(c.id, c.img);
       save(); close(); render(); toast(editing ? t("saved") : t("added")(c.sym));
       if (!editing) refresh();
     };

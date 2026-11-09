@@ -1,6 +1,6 @@
 // 残高帳：アプリ本体だけを端末に保存し、オフラインでも開けるようにする。
 // 価格の通信は保存しない（常に最新を取りに行き、失敗時はアプリ側が前回の価格を表示する）。
-const CACHE = "zandaka-v2";
+const CACHE = "zandaka-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
