@@ -70,6 +70,7 @@ ul.list li:first-child{border-top:0}
 .btn:disabled{opacity:.5}
 .fab{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:30px;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;display:grid;place-items:center}
 .fab svg{width:28px;height:28px}
+[hidden]{display:none!important}
 .note{font-size:12px;color:var(--muted);line-height:1.6}
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(10,14,20,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
@@ -180,7 +181,18 @@ const L = {
     ch: "トークン憲章", chLoading: "トークン憲章を確かめています…", chNone: "この銘柄は、トークン憲章でまだ評価していません。",
     chFail: "トークン憲章を読み込めませんでした。", chScore: (g, n) => "評価 " + g + "（" + n + "点）", chConf: k => "確からしさ：" + k,
     chUnlock: "内部関係者の売却ルール（ロック解除）", chSupply: "供給予定の確定", chNA: "対象外（発行体がありません）",
-    chOpen: "トークン憲章で詳しく見る", chAt: d => d + " 時点の評価", chSrc: "出典", chConfK: { high: "高", medium: "中", low: "低" }
+    chOpen: "トークン憲章で詳しく見る", chAt: d => d + " 時点の評価", chSrc: "出典", chConfK: { high: "高", medium: "中", low: "低" },
+    lk: "ロック", lkOffNote: "ロックすると、この端末に保存した銘柄と枚数を暗号にします。開けるたびに、パスキーか暗証番号が必要になります。",
+    lkWarn: "パスキーや暗証番号をなくすと、中身は取り出せません。先に上の「バックアップ」で書き出しておいてください。",
+    lkPass: "パスキーでロックする", lkPin: "暗証番号でロックする", lkPinL: "暗証番号（6文字以上）", lkPin2: "もう一度", lkSet: "ロックする",
+    lkShort: "暗証番号は6文字以上にしてください。", lkDiff: "2回の暗証番号が違います。",
+    lkNoPrf: "この端末のパスキーはロックに使えませんでした。暗証番号を使ってください。",
+    lkFail: "ロックできませんでした。中身はそのままです。", lkOn: "ロックしました",
+    lkOnNote: k => (k === "passkey" ? "パスキー" : "暗証番号") + "でロックしています。開き直したときと、1分以上ほかのアプリにいたときにロックされます。",
+    lkNow: "今すぐロックする", lkOff: "ロックを外す", lkOffQ: "ロックを外すと、銘柄と枚数は暗号にしないで保存されます。", lkOffYes: "外す", lkOffDone: "ロックを外しました",
+    lkH: "ロックされています", lkOpen: "開ける", lkOpenPass: "パスキーで開ける", lkBad: "暗証番号が違います。", lkPassFail: "開けられませんでした。もう一度試してください。",
+    lkWorking: "確かめています…", lkLost: "パスキーや暗証番号をなくしたとき",
+    lkLostP: "中身は暗号になっているので、だれにも取り出せません。バックアップがあれば、消去してから読み込み直せます。", lkWipe: "消去してやり直す"
   },
   en: {
     app: "Zandaka", hide: "Hide amounts", show: "Show amounts", refresh: "Refresh prices", settings: "Settings", add: "Add a coin", close: "Close",
@@ -218,7 +230,18 @@ const L = {
     ch: "Token Charter", chLoading: "Checking the Token Charter…", chNone: "The Token Charter hasn't rated this coin yet.",
     chFail: "Couldn't load the Token Charter.", chScore: (g, n) => "Grade " + g + " (" + n + " pts)", chConf: k => "Confidence: " + k,
     chUnlock: "Insider selling rules (unlocks)", chSupply: "Fixed supply schedule", chNA: "Not applicable (no issuer)",
-    chOpen: "See it in the Token Charter", chAt: d => "Rated on " + d, chSrc: "Sources", chConfK: { high: "High", medium: "Medium", low: "Low" }
+    chOpen: "See it in the Token Charter", chAt: d => "Rated on " + d, chSrc: "Sources", chConfK: { high: "High", medium: "Medium", low: "Low" },
+    lk: "Lock", lkOffNote: "Locking encrypts the coins and amounts saved on this device. You'll need a passkey or PIN each time you open it.",
+    lkWarn: "If you lose the passkey or PIN, the data can't be recovered. Export a backup above first.",
+    lkPass: "Lock with a passkey", lkPin: "Lock with a PIN", lkPinL: "PIN (6 or more characters)", lkPin2: "Once more", lkSet: "Lock",
+    lkShort: "Use 6 or more characters.", lkDiff: "The two PINs don't match.",
+    lkNoPrf: "This device's passkey can't be used as a lock. Use a PIN instead.",
+    lkFail: "Couldn't lock. Your data is unchanged.", lkOn: "Locked",
+    lkOnNote: k => "Locked with a " + (k === "passkey" ? "passkey" : "PIN") + ". It locks when you reopen the app, or after a minute in another app.",
+    lkNow: "Lock now", lkOff: "Remove the lock", lkOffQ: "Without the lock, coins and amounts are saved unencrypted.", lkOffYes: "Remove", lkOffDone: "Lock removed",
+    lkH: "Locked", lkOpen: "Open", lkOpenPass: "Open with passkey", lkBad: "Wrong PIN.", lkPassFail: "Couldn't open. Try again.",
+    lkWorking: "Checking…", lkLost: "Lost your passkey or PIN?",
+    lkLostP: "The data is encrypted, so no one can recover it. If you have a backup, erase and restore it.", lkWipe: "Erase and start over"
   }
 };
 
@@ -227,13 +250,70 @@ const KEY = "zandaka.v1";
 const sysLang = (navigator.language || "ja").toLowerCase().startsWith("ja") ? "ja" : "en";
 const DEFAULT = { holdings: [], prices: {}, icons: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false, charts: true } };
 function fresh() { return JSON.parse(JSON.stringify(DEFAULT)); }
+const merge = s => Object.assign(fresh(), s, { settings: Object.assign({}, DEFAULT.settings, s.settings || {}) });
+/* 鍵：かけているあいだ、保存するのは暗号にした中身だけ。開ける鍵（CK）は開いているあいだだけ手元に持つ */
+let LOCK = null, CK = null, locked = false;
 function load() {
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.holdings)) return Object.assign(fresh(), s, { settings: Object.assign({}, DEFAULT.settings, s.settings || {}) }); } catch (e) {}
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.lock && s.ct) { LOCK = s.lock; locked = true; const f = fresh(); if (L[s.lang]) f.settings.lang = s.lang; return f; }
+    if (s && Array.isArray(s.holdings)) return merge(s);
+  } catch (e) {}
   return fresh();
 }
 let S = load();
 const t = k => L[S.settings.lang][k];
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t("noStore")); } }
+let saving = Promise.resolve();
+function save() {
+  if (!LOCK) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t("noStore")); } return; }
+  if (!CK) return;   // 鍵がかかっている画面では書かない
+  const snap = JSON.parse(JSON.stringify(S)), key = CK, lk = LOCK;
+  saving = saving.then(async () => { const box = await seal(key, snap); localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: lk, lang: snap.settings.lang }, box))); }).catch(() => toast(t("noStore")));
+}
+const te = new TextEncoder(), td = new TextDecoder();
+const b64 = u => { let x = ""; new Uint8Array(u).forEach(c => x += String.fromCharCode(c)); return btoa(x); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+const AES = { name: "AES-GCM", length: 256 };
+async function pinKey(pin, salt) { const k = await crypto.subtle.importKey("raw", te.encode(pin), "PBKDF2", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 600000 }, k, AES, false, ["encrypt", "decrypt"]); }
+async function prfKey(bytes, salt) { const k = await crypto.subtle.importKey("raw", bytes, "HKDF", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt, info: te.encode("zandaka-lock") }, k, AES, false, ["encrypt", "decrypt"]); }
+async function seal(key, obj) { const iv = rnd(12); const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, te.encode(JSON.stringify(obj))); return { iv: b64(iv), ct: b64(ct) }; }
+async function unseal(key, box) { return JSON.parse(td.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(box.iv) }, key, unb64(box.ct)))); }
+async function passkeyBytes(rawId, salt) {
+  const a = await navigator.credentials.get({ publicKey: { challenge: rnd(32), allowCredentials: [{ type: "public-key", id: rawId }], userVerification: "required", extensions: { prf: { eval: { first: salt } } } } });
+  const r = a && a.getClientExtensionResults().prf;
+  if (!r || !r.results || !r.results.first) throw new Error("noprf");
+  return new Uint8Array(r.results.first);
+}
+async function passkeyLock() {
+  const salt = rnd(32);
+  const c = await navigator.credentials.create({ publicKey: { rp: { name: t("app") }, user: { id: rnd(16), name: "zandaka", displayName: t("app") }, challenge: rnd(32),
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { residentKey: "preferred", userVerification: "required" }, extensions: { prf: { eval: { first: salt } } } } });
+  const r = c.getClientExtensionResults().prf;
+  if (!r || r.enabled === false) throw new Error("noprf");
+  const bytes = r.results && r.results.first ? new Uint8Array(r.results.first) : await passkeyBytes(c.rawId, salt);
+  return { lock: { kind: "passkey", salt: b64(salt), cred: b64(c.rawId) }, key: await prfKey(bytes, salt) };
+}
+async function pinLock(pin) { const salt = rnd(16); return { lock: { kind: "pin", salt: b64(salt) }, key: await pinKey(pin, salt) }; }
+// 鍵をかける：書いたものを読み戻して開けられると確かめてから、鍵つきにする
+async function enableLock(got) {
+  await saving;
+  const box = await seal(got.key, S);
+  if (JSON.stringify(await unseal(got.key, box)) !== JSON.stringify(S)) throw new Error("verify");
+  localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: got.lock, lang: S.settings.lang }, box)));
+  LOCK = got.lock; CK = got.key;
+}
+async function disableLock() { await saving; LOCK = null; CK = null; save(); }
+async function unlockWith(key) {
+  const raw = JSON.parse(localStorage.getItem(KEY));
+  S = merge(await unseal(key, raw)); CK = key; locked = false;
+}
+function lockNow() {
+  if (!LOCK) return;
+  CK = null; locked = true; clearInterval(timer);
+  const lang = S.settings.lang; S = fresh(); S.settings.lang = lang;
+  close(); render();
+}
 
 /* ===== 価格サービス（CoinGecko） ===== */
 const API = "https://api.coingecko.com/api/v3";
@@ -245,7 +325,7 @@ function apiUrl(path, params) {
 }
 let fetching = false, lastError = "";
 async function refresh(manual) {
-  if (fetching) return;
+  if (fetching || locked) return;
   const ids = [...new Set(S.holdings.map(h => h.id))];
   if (!ids.length) { render(); return; }
   fetching = true; lastError = ""; render();
@@ -345,6 +425,8 @@ function compute() {
 
 function render() {
   applyChrome();
+  ["#btn-eye", "#btn-refresh", "#btn-settings", "#btn-add"].forEach(x => $(x).hidden = locked);
+  if (locked) return renderLock();
   document.body.classList.toggle("hidden-amt", !!S.settings.hide);
   const v = $("#view");
   if (!S.holdings.length) {
@@ -551,6 +633,17 @@ function openSettings() {
     <div class="actions"><button class="btn sub" id="b-imp">${t("imp")}</button></div>
     <p class="note" id="b-msg" style="margin:0"></p>
     <hr class="hr">
+    <h2 style="font-size:16px">${t("lk")}</h2>
+    ${LOCK ? `<p class="note" style="margin:0">${t("lkOnNote")(LOCK.kind)}</p>
+    <div class="actions"><button class="btn sub" id="l-now">${t("lkNow")}</button><button class="btn danger" id="l-off">${t("lkOff")}</button></div>
+    <div id="l-offc" hidden><p style="margin:0">${t("lkOffQ")}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="l-offy">${t("lkOffYes")}</button><button class="btn sub" id="l-offn">${t("cancel")}</button></div></div>`
+    : `<p class="note" style="margin:0">${t("lkOffNote")}</p><p class="note" style="margin:0">${t("lkWarn")}</p>
+    <div class="actions">${window.PublicKeyCredential ? `<button class="btn sub" id="l-pass">${t("lkPass")}</button>` : ""}<button class="btn sub" id="l-pin">${t("lkPin")}</button></div>
+    <div id="l-pinf" hidden><label class="f" for="pin1">${t("lkPinL")}<input class="inp" id="pin1" type="password" autocomplete="new-password"></label>
+    <label class="f" for="pin2">${t("lkPin2")}<input class="inp" id="pin2" type="password" autocomplete="new-password"></label>
+    <div class="actions"><button class="btn" id="l-set">${t("lkSet")}</button></div></div>`}
+    <p class="note" id="l-msg" style="margin:0"></p>
+    <hr class="hr">
     <div class="actions"><button class="btn danger" id="r-all">${t("wipe")}</button></div>
     <div id="r-confirm" hidden><p style="margin:0">${t("wipeQ")}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="r-yes">${t("wipeYes")}</button><button class="btn sub" id="r-no">${t("cancel")}</button></div></div>
     <p class="note" style="margin:0">${t("safety")}</p>`, () => {
@@ -569,8 +662,60 @@ function openSettings() {
     };
     $("#r-all").onclick = () => { $("#r-confirm").hidden = false; };
     $("#r-no").onclick = () => { $("#r-confirm").hidden = true; };
-    $("#r-yes").onclick = () => { const lang = st.lang; S = fresh(); S.settings.lang = lang; save(); close(); render(); toast(t("wiped")); };
+    $("#r-yes").onclick = async () => { const lang = st.lang; await saving; LOCK = null; CK = null; S = fresh(); S.settings.lang = lang; save(); close(); render(); toast(t("wiped")); };
+    const lmsg = m => { $("#l-msg").textContent = m; };
+    const turnOn = async get => {
+      lmsg(t("lkWorking"));
+      try { await enableLock(await get()); close(); render(); toast(t("lkOn")); }
+      catch (e) { lmsg(e && e.message === "noprf" ? t("lkNoPrf") : t("lkFail")); }
+    };
+    if (LOCK) {
+      $("#l-now").onclick = lockNow;
+      $("#l-off").onclick = () => { $("#l-offc").hidden = false; };
+      $("#l-offn").onclick = () => { $("#l-offc").hidden = true; };
+      $("#l-offy").onclick = async () => { await disableLock(); close(); render(); toast(t("lkOffDone")); };
+    } else {
+      if ($("#l-pass")) $("#l-pass").onclick = () => turnOn(passkeyLock);
+      $("#l-pin").onclick = () => { $("#l-pinf").hidden = false; $("#pin1").focus(); };
+      $("#l-set").onclick = () => {
+        const a = $("#pin1").value, b = $("#pin2").value;
+        if (a.length < 6) return lmsg(t("lkShort"));
+        if (a !== b) return lmsg(t("lkDiff"));
+        turnOn(() => pinLock(a));
+      };
+    }
   });
+}
+
+function renderLock() {
+  const pin = LOCK.kind === "pin";
+  $("#view").innerHTML = `<section class="empty">
+    <h2>${t("lkH")}</h2>
+    ${pin ? `<label class="f" for="lk-pin" style="width:100%;text-align:left">${t("lkPinL")}<input class="inp" id="lk-pin" type="password" autocomplete="current-password"></label>` : ""}
+    <div class="actions" style="width:100%"><button class="btn" id="lk-open">${pin ? t("lkOpen") : t("lkOpenPass")}</button></div>
+    <p class="note" id="lk-msg" style="margin:0" role="status"></p>
+  </section>
+  <details class="note" style="margin-top:16px"><summary>${t("lkLost")}</summary><p>${t("lkLostP")}</p>
+    <div class="actions"><button class="btn danger" id="lk-wipe">${t("lkWipe")}</button></div>
+    <div id="lk-wc" hidden><p style="margin:0">${t("wipeQ")}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="lk-wy">${t("wipeYes")}</button><button class="btn sub" id="lk-wn">${t("cancel")}</button></div></div>
+  </details>`;
+  const msg = m => { $("#lk-msg").textContent = m; };
+  let busy = false;
+  const open = async () => {
+    if (busy) return; busy = true; msg(t("lkWorking"));
+    try {
+      const salt = unb64(LOCK.salt);
+      const key = pin ? await pinKey($("#lk-pin").value, salt) : await prfKey(await passkeyBytes(unb64(LOCK.cred), salt), salt);
+      await unlockWith(key);
+      S.holdings.forEach(x => { if (!x.uid) x.uid = Math.random().toString(36).slice(2, 10); });
+      render(); schedule(); refresh();
+    } catch (e) { busy = false; msg(pin ? t("lkBad") : t("lkPassFail")); if (pin) { $("#lk-pin").value = ""; $("#lk-pin").focus(); } }
+  };
+  $("#lk-open").onclick = open;
+  if (pin) $("#lk-pin").onkeydown = e => { if (e.key === "Enter") open(); };
+  $("#lk-wipe").onclick = () => { $("#lk-wc").hidden = false; };
+  $("#lk-wn").onclick = () => { $("#lk-wc").hidden = true; };
+  $("#lk-wy").onclick = () => { const lang = S.settings.lang; LOCK = null; CK = null; locked = false; S = fresh(); S.settings.lang = lang; save(); render(); toast(t("wiped")); };
 }
 
 let tt;
@@ -583,9 +728,14 @@ $("#btn-add").onclick = openAdd;
 $("#btn-settings").onclick = openSettings;
 $("#btn-refresh").onclick = () => refresh(true);
 $("#btn-eye").onclick = () => { S.settings.hide = !S.settings.hide; save(); render(); };
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && (!S.updatedAt || Date.now() - S.updatedAt > 60000)) refresh(); });
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+  if (LOCK && !locked && hiddenAt && Date.now() - hiddenAt > 60000) return lockNow();   // 1分以上ほかのアプリにいたら鍵をかける
+  if (!S.updatedAt || Date.now() - S.updatedAt > 60000) refresh();
+});
 S.holdings.forEach(x => { if (!x.uid) x.uid = Math.random().toString(36).slice(2, 10); });
-render(); schedule(); refresh();
+render(); if (!locked) { schedule(); refresh(); }
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>

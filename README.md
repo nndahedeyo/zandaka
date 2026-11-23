@@ -16,6 +16,7 @@
 - 評価額の合計、24時間の増減、銘柄ごとの割合
 - 目標の配分とのずれ（5ポイント以上ずれると赤）
 - 自動更新、金額を隠す表示、バックアップの書き出しと読み込み
+- パスキーか暗証番号でロック（保存した銘柄と枚数を暗号にします。開き直したときと、1分以上ほかのアプリにいたときにロック）
 - 電波がないときは前回の価格で表示
 - 銘柄ごとの7日間の小さなチャート（設定で出さないこともできる）。銘柄を押すと、大きなチャート（1日・7日・30日・1年）
 - 銘柄を押すと、[トークン憲章](https://nndahedeyo.github.io/token-charter/)の評価（ロック解除＝内部関係者の売却ルール、供給予定の確定、出典）も確かめられる
@@ -51,6 +52,7 @@ Zandaka shows what your crypto is worth right now. Enter the coins you hold and 
 - Total value, 24h change, share by coin
 - Distance from your target allocation (red at 5 points or more)
 - Auto refresh, hide amounts, backup export and restore
+- Lock with a passkey or PIN (encrypts the saved coins and amounts; locks on reopen or after a minute in another app)
 - Shows the last prices when you're offline
 - A small 7-day chart for each coin (you can turn it off in Settings). Tap a coin for a larger chart (1D, 7D, 30D, 1Y)
 - Tap a coin to see its [Token Charter](https://nndahedeyo.github.io/token-charter/en/) rating too (insider selling rules / unlocks, fixed supply schedule, sources)
