@@ -92,6 +92,35 @@ textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
 .hr{border:0;border-top:1px solid var(--line);width:100%;margin:0}
 .note a{color:var(--accent)}
 .sect{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:4px 4px -6px}
+/* 7日間の小さなチャート・銘柄の詳細・トークン憲章 */
+.row.has-spark{grid-template-columns:auto 1fr auto auto}
+.spark{width:56px;height:24px;display:block}
+.spark path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:359px){.spark{display:none}.row.has-spark{grid-template-columns:auto 1fr auto}}
+.coin-head{display:flex;align-items:center;gap:12px;min-width:0}
+.coin-head .t{display:flex;flex-direction:column;min-width:0}
+.coin-head .t b{font-size:18px}
+.coin-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.coin-price .p{font-size:24px;font-weight:700}
+.ranges{display:flex;gap:6px}
+.ranges button{flex:1;border:1px solid var(--line);background:none;border-radius:10px;padding:8px 0;cursor:pointer;font-size:13px}
+.ranges button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}
+.chart{width:100%;max-width:100%;aspect-ratio:320/150;display:block}
+.chart .area{fill:currentColor;opacity:.12;stroke:none}
+.chart .line{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--mono)}
+.chart-box{min-height:120px;display:grid;align-items:center;padding-bottom:6px}
+.chart-box .note{text-align:center}
+.mine{display:flex;justify-content:space-between;align-items:center;gap:4px 10px;flex-wrap:wrap;background:var(--bg);border-radius:12px;padding:12px 14px}
+.mine .muted{white-space:nowrap}
+.charter{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.charter .g{display:flex;align-items:center;gap:10px}
+.charter .g > span:last-child{min-width:0}
+.grade{flex:none;font-weight:800;font-size:18px;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.charter dl{margin:0;display:grid;gap:6px}
+.charter dt{font-size:12px;color:var(--muted)}
+.charter dd{margin:0;font-size:14px}
+.charter a{color:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -144,7 +173,13 @@ const L = {
     fileSaved: "ファイルを保存しました。", impOk: n => n + "銘柄を読み込みました", impFail: "読み込めませんでした。書き出した内容をそのまま貼り付けてください。",
     wipe: "すべて消去", wipeQ: "登録した銘柄と枚数をすべて消去します。元に戻せません。", wipeYes: "消去する", wiped: "消去しました",
     safety: "残高帳は送金や署名の機能を持たず、秘密鍵・復元フレーズ・ウォレットのアドレスを一切扱いません。これらの入力を求める画面が出たら、偽物です。",
-    jpy: "日本円（JPY）", usd: "米ドル（USD）", locale: "ja-JP"
+    jpy: "日本円（JPY）", usd: "米ドル（USD）", locale: "ja-JP",
+    ranges: ["1日", "7日", "30日", "1年"], chartLoading: "チャートを読み込み中…", chartFail: "チャートを読み込めませんでした。少し待ってから開き直してください。",
+    hold: "持っている分", editAmt: "枚数を直す", spark7: "7日間の値動き",
+    ch: "トークン憲章", chLoading: "トークン憲章を確かめています…", chNone: "この銘柄は、トークン憲章でまだ評価していません。",
+    chFail: "トークン憲章を読み込めませんでした。", chScore: (g, n) => "評価 " + g + "（" + n + "点）", chConf: k => "確からしさ：" + k,
+    chUnlock: "内部関係者の売却ルール（ロック解除）", chSupply: "供給予定の確定", chNA: "対象外（発行体がありません）",
+    chOpen: "トークン憲章で詳しく見る", chAt: d => d + " 時点の評価", chSrc: "出典", chConfK: { high: "高", medium: "中", low: "低" }
   },
   en: {
     app: "Zandaka", hide: "Hide amounts", show: "Show amounts", refresh: "Refresh prices", settings: "Settings", add: "Add a coin", close: "Close",
@@ -176,7 +211,13 @@ const L = {
     fileSaved: "File saved.", impOk: n => n + " coins restored", impFail: "Couldn't restore. Paste the export exactly as it was saved.",
     wipe: "Erase everything", wipeQ: "This erases every coin and amount you added. It can't be undone.", wipeYes: "Erase", wiped: "Erased",
     safety: "Zandaka can't send or sign anything, and never asks for private keys, recovery phrases or wallet addresses. Any screen that asks for these is fake.",
-    jpy: "Japanese yen (JPY)", usd: "US dollar (USD)", locale: "en-US"
+    jpy: "Japanese yen (JPY)", usd: "US dollar (USD)", locale: "en-US",
+    ranges: ["1D", "7D", "30D", "1Y"], chartLoading: "Loading chart…", chartFail: "Couldn't load the chart. Wait a moment and open it again.",
+    hold: "Your holding", editAmt: "Edit amount", spark7: "Last 7 days",
+    ch: "Token Charter", chLoading: "Checking the Token Charter…", chNone: "The Token Charter hasn't rated this coin yet.",
+    chFail: "Couldn't load the Token Charter.", chScore: (g, n) => "Grade " + g + " (" + n + " pts)", chConf: k => "Confidence: " + k,
+    chUnlock: "Insider selling rules (unlocks)", chSupply: "Fixed supply schedule", chNA: "Not applicable (no issuer)",
+    chOpen: "See it in the Token Charter", chAt: d => "Rated on " + d, chSrc: "Sources", chConfK: { high: "High", medium: "Medium", low: "Low" }
   }
 };
 
@@ -209,12 +250,12 @@ async function refresh(manual) {
   fetching = true; lastError = ""; render();
   try {
     const cur = S.settings.currency;
-    const r = await fetch(apiUrl("/coins/markets", { vs_currency: cur, ids: ids.join(","), per_page: "250", price_change_percentage: "24h" }));
+    const r = await fetch(apiUrl("/coins/markets", { vs_currency: cur, ids: ids.join(","), per_page: "250", price_change_percentage: "24h", sparkline: "true" }));
     if (r.status === 429) throw new Error(t("busy"));
     if (!r.ok) throw new Error(t("priceFail")(r.status));
     const j = await r.json();
     (Array.isArray(j) ? j : []).forEach(m => {
-      if (m.current_price != null) S.prices[m.id] = { p: m.current_price, c: m.price_change_percentage_24h ?? null, cur };
+      if (m.current_price != null) S.prices[m.id] = { p: m.current_price, c: m.price_change_percentage_24h ?? null, cur, s: thin(m.sparkline_in_7d && m.sparkline_in_7d.price, 40) };
       if (m.image && !S.icons[m.id]) cacheIcon(m.id, m.image);
     });
     S.updatedAt = Date.now(); save();
@@ -222,6 +263,13 @@ async function refresh(manual) {
   } catch (e) {
     lastError = e.message && !/Failed to fetch|Load failed|NetworkError/.test(e.message) ? e.message : t("netFail");
   } finally { fetching = false; render(); }
+}
+// 7日間の値動き：形だけ使うので、点を間引いて小さく保存する
+function thin(a, n) {
+  if (!Array.isArray(a)) return null;
+  const v = a.filter(x => typeof x === "number" && isFinite(x)); if (v.length < 2) return null;
+  const out = []; for (let i = 0; i < n; i++) out.push(+v[Math.round(i * (v.length - 1) / (n - 1))].toPrecision(6));
+  return out;
 }
 async function search(q) {
   const r = await fetch(apiUrl("/search", { query: q }));
@@ -258,6 +306,13 @@ function badge(h) {
   const src = S.icons[h.id] || (h.img && ICON_OK.test(small(h.img)) ? small(h.img) : "");
   const txt = `<span class="badge" style="background:hsl(${hue(h.id)} 45% 42%)" aria-hidden="true">${esc(h.sym.slice(0, 4))}</span>`;
   return src ? `<span class="badge icon" aria-hidden="true"><img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.outerHTML=this.parentNode.dataset.fb" ></span>`.replace('class="badge icon"', `class="badge icon" data-fb="${esc(txt)}"`) : txt;
+}
+function sparkSvg(pts) {
+  if (!Array.isArray(pts) || pts.length < 2) return "";
+  const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, W = 56, H = 24;
+  const d = pts.map((p, i) => (i ? "L" : "M") + (i * (W - 2) / (pts.length - 1) + 1).toFixed(1) + " " + (H - 2 - (p - lo) / span * (H - 4)).toFixed(1)).join("");
+  const cls = pts[pts.length - 1] > pts[0] ? "up" : pts[pts.length - 1] < pts[0] ? "down" : "muted";
+  return `<svg class="spark ${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("spark7")}"><path d="${d}"/></svg>`;
 }
 function ago(ts) {
   if (!ts) return t("never");
@@ -320,16 +375,17 @@ function render() {
     ${sample ? `<p class="note" style="margin:0">${t("sampleNote")}</p>` : ""}
     <ul class="list">${rows.map(r => {
       const dev = anyTarget && r.h.target > 0 && r.share != null ? r.share - r.h.target : null;
-      return `<li><button class="row" data-id="${esc(r.h.uid)}">
+      const sp = r.p != null ? sparkSvg((S.prices[r.h.id] || {}).s) : "";
+      return `<li><button class="row${sp ? " has-spark" : ""}" data-id="${esc(r.h.uid)}">
         ${badge(r.h)}
-        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>
+        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>${sp}
         <span class="right"><span class="val num amtv">${money(r.v)}</span>
           <span class="meta num"><span class="${r.c > 0 ? "up" : r.c < 0 ? "down" : ""}">${pct(r.c, true)}</span> · ${pct(r.share)}</span>
           ${dev != null ? `<span class="tgt num ${Math.abs(dev) >= 5 ? "down" : "muted"}">${t("target")} ${pct(r.h.target)} (${dev > 0 ? "+" : ""}${dev.toFixed(1)})</span>` : ""}
         </span></button></li>`; }).join("")}</ul>
     ${anyTarget ? `<p class="note" style="margin:0">${t("devNote")}</p>` : ""}
     <p class="note">${t("privacy")}</p>`;
-  v.querySelectorAll(".row").forEach(b => b.onclick = () => openEdit(b.dataset.id));
+  v.querySelectorAll(".row").forEach(b => b.onclick = () => openCoin(b.dataset.id));
 }
 
 /* ===== シート（追加・編集・設定） ===== */
@@ -392,6 +448,85 @@ function openAmount(c, h) {
       $("#a-cancel").onclick = () => { $("#confirm").hidden = true; $("#a-del").disabled = false; };
       $("#a-del2").onclick = () => { S.holdings = S.holdings.filter(x => x !== h); save(); close(); render(); toast(t("deleted")); };
     }
+  });
+}
+/* ===== 銘柄の詳細（大きなチャートとトークン憲章） ===== */
+const RANGES = ["1", "7", "30", "365"];
+const chartCache = {};
+async function loadChart(id, days) {
+  const key = id + "|" + S.settings.currency + "|" + days, c = chartCache[key];
+  if (c && Date.now() - c.at < 5 * 60000) return c.pts;
+  const r = await fetch(apiUrl("/coins/" + encodeURIComponent(id) + "/market_chart", { vs_currency: S.settings.currency, days }));
+  if (r.status === 429) throw new Error(t("busy"));
+  if (!r.ok) throw new Error(t("chartFail"));
+  const j = await r.json();
+  const raw = (j.prices || []).filter(x => Array.isArray(x) && isFinite(x[0]) && isFinite(x[1]));
+  if (raw.length < 2) throw new Error(t("chartFail"));
+  const step = Math.max(1, Math.ceil(raw.length / 120)), pts = raw.filter((x, i) => i % step === 0 || i === raw.length - 1);
+  chartCache[key] = { at: Date.now(), pts }; return pts;
+}
+function chartSvg(pts, days) {
+  const W = 320, H = 150, T = 14, B = 20, ps = pts.map(x => x[1]);
+  const lo = Math.min(...ps), hi = Math.max(...ps), span = hi - lo || 1, t0 = pts[0][0], t1 = pts[pts.length - 1][0];
+  const X = ts => ((ts - t0) / ((t1 - t0) || 1)) * (W - 2) + 1, Y = p => T + (1 - (p - lo) / span) * (H - T - B);
+  const line = pts.map((x, i) => (i ? "L" : "M") + X(x[0]).toFixed(1) + " " + Y(x[1]).toFixed(1)).join("");
+  const area = line + "L" + X(t1).toFixed(1) + " " + (H - B) + "L" + X(t0).toFixed(1) + " " + (H - B) + "Z";
+  const cls = ps[ps.length - 1] > ps[0] ? "up" : ps[ps.length - 1] < ps[0] ? "down" : "muted";
+  const fmt = ts => new Date(ts).toLocaleString(loc(), days === "1" ? { hour: "2-digit", minute: "2-digit" } : days === "365" ? { year: "numeric", month: "numeric" } : { month: "numeric", day: "numeric" });
+  return `<svg class="chart ${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(price(lo))} – ${esc(price(hi))}">
+    <path class="area" d="${area}"/><path class="line" d="${line}"/>
+    <text x="2" y="10">${esc(price(hi))}</text><text x="2" y="${H - B - 4}">${esc(price(lo))}</text>
+    <text x="1" y="${H - 5}">${esc(fmt(t0))}</text><text x="${W - 1}" y="${H - 5}" text-anchor="end">${esc(fmt(t1))}</text></svg>`;
+}
+// トークン憲章：同じ場所（nndahedeyo.github.io）に公開されている生データを読む
+let charter = null;
+async function loadCharter() {
+  if (charter) return charter;
+  const base = new URL("../token-charter/", location.href);
+  const [tk, cr] = await Promise.all(["data/tokens.json", "data/criteria.json"].map(f => fetch(new URL(f, base)).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
+  if (!tk || !Array.isArray(tk.tokens) || !cr || !Array.isArray(cr.items)) throw new Error("format");
+  charter = { tk, cr, page: new URL(S.settings.lang === "en" ? "en/" : "", base).href };
+  return charter;
+}
+const safeUrl = u => /^https:\/\//.test(String(u || "")) ? String(u) : "";
+function charterHtml(id) {
+  const tok = charter.tk.tokens.find(x => x.coingecko === id);
+  const link = `<a href="${esc(charter.page)}" target="_blank" rel="noopener">${t("chOpen")}</a>`;
+  if (!tok) return `<p class="note" style="margin:0">${t("chNone")}</p>${link}`;
+  const en = S.settings.lang === "en", g = charter.cr.grades, v = (tok.scores || []).filter(x => x != null);
+  const n = v.length ? Math.round(v.reduce((a, b) => a + b, 0) / (2 * v.length) * 100) : null;
+  const grade = n == null ? "—" : n >= g.A ? "A" : n >= g.B ? "B" : n >= g.C ? "C" : n >= g.D ? "D" : "E";
+  const item = no => { const it = charter.cr.items.find(i => i.no === no), sc = (tok.scores || [])[no - 1];
+    if (!it) return ""; const txt = sc == null ? t("chNA") : en ? it["score" + sc + "_en"] : it["score" + sc];
+    return `<dt>${esc(en ? it.name_en : it.name)}</dt><dd>${esc(txt)}</dd>`; };
+  const src = (tok.sources || []).map(x => safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(en ? (x.title_en || new URL(x.url).hostname) : x.title)}</a>` : "").filter(Boolean).join("<br>");
+  return `<div class="g"><span class="grade">${grade}</span><span>${n == null ? "" : esc(t("chScore")(grade, n))}<br><span class="note">${esc(t("chConf")(t("chConfK")[tok.confidence] || tok.confidence))} · ${esc(t("chAt")(tok.reviewed))}</span></span></div>
+    <p style="margin:0">${esc(en ? (tok.note_en || tok.note) : tok.note)}</p>
+    <dl>${item(3)}${item(7)}</dl>
+    ${src ? `<p class="note" style="margin:0">${t("chSrc")}<br>${src}</p>` : ""}${link}`;
+}
+let coinDays = "7";
+function openCoin(uid) {
+  const h = S.holdings.find(x => x.uid === uid); if (!h) return;
+  const pr = S.prices[h.id], ok = pr && pr.cur === S.settings.currency;
+  sheet(`<div class="head"><div class="coin-head">${badge(h)}<span class="t"><b>${esc(h.sym)}</b><span class="note" style="margin:0">${esc(h.name)}</span></span></div>${closeBtn()}</div>
+    <div class="coin-price"><span class="p num">${ok ? price(pr.p) : "—"}</span><span class="num ${ok && pr.c > 0 ? "up" : ok && pr.c < 0 ? "down" : "muted"}">${t("h24")} ${ok ? pct(pr.c, true) : "—"}</span></div>
+    <div class="ranges" role="group">${RANGES.map((d, i) => `<button type="button" data-days="${d}" aria-pressed="${d === coinDays}">${t("ranges")[i]}</button>`).join("")}</div>
+    <div class="chart-box" id="chart"><p class="note">${t("chartLoading")}</p></div>
+    <div class="mine"><span class="muted">${t("hold")}</span><span class="num amtv">${qty(h.amount)} · ${ok ? money(pr.p * h.amount) : "—"}</span></div>
+    <div class="actions"><button class="btn sub" id="c-edit">${t("editAmt")}</button></div>
+    <section class="charter" aria-label="${t("ch")}"><b>${t("ch")}</b><div id="charter"><p class="note" style="margin:0">${t("chLoading")}</p></div></section>`, Ly => {
+    const draw = async () => {
+      const box = Ly.querySelector("#chart"), days = coinDays; if (!box) return;
+      box.innerHTML = `<p class="note">${t("chartLoading")}</p>`;
+      try { const pts = await loadChart(h.id, days); if (box.isConnected && days === coinDays) box.innerHTML = chartSvg(pts, days); }
+      catch (e) { if (box.isConnected) box.innerHTML = `<p class="note">${esc(e.message && !/Failed to fetch|Load failed|NetworkError/.test(e.message) ? e.message : t("chartFail"))}</p>`; }
+    };
+    Ly.querySelectorAll("[data-days]").forEach(b => b.onclick = () => { coinDays = b.dataset.days; Ly.querySelectorAll("[data-days]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); draw(); });
+    Ly.querySelector("#c-edit").onclick = () => openEdit(uid);
+    draw();
+    loadCharter().then(() => { const el = Ly.querySelector("#charter"); if (el && el.isConnected) el.innerHTML = charterHtml(h.id); })
+      .catch(() => { const el = Ly.querySelector("#charter"); if (el && el.isConnected) el.innerHTML = `<p class="note" style="margin:0">${t("chFail")}</p>`; });
   });
 }
 function openEdit(uid) { const h = S.holdings.find(x => x.uid === uid); if (h) openAmount(h, h); }
