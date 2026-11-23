@@ -184,8 +184,8 @@ const L = {
     chOpen: "トークン憲章で詳しく見る", chAt: d => d + " 時点の評価", chSrc: "出典", chConfK: { high: "高", medium: "中", low: "低" },
     lk: "ロック", lkOffNote: "ロックすると、この端末に保存した銘柄と枚数を暗号にします。開けるたびに、パスキーか暗証番号が必要になります。",
     lkWarn: "パスキーや暗証番号をなくすと、中身は取り出せません。先に上の「バックアップ」で書き出しておいてください。",
-    lkPass: "パスキーでロックする", lkPin: "暗証番号でロックする", lkPinL: "暗証番号（6文字以上）", lkPin2: "もう一度", lkSet: "ロックする",
-    lkShort: "暗証番号は6文字以上にしてください。", lkDiff: "2回の暗証番号が違います。",
+    lkPass: "パスキーでロックする", lkPin: "暗証番号でロックする", lkPinL: "暗証番号（数字6けた以上）", lkPin2: "もう一度", lkSet: "ロックする",
+    lkShort: "暗証番号は数字6けた以上にしてください。", lkDiff: "2回の暗証番号が違います。",
     lkNoPrf: "この端末のパスキーはロックに使えませんでした。暗証番号を使ってください。",
     lkFail: "ロックできませんでした。中身はそのままです。", lkOn: "ロックしました",
     lkOnNote: k => (k === "passkey" ? "パスキー" : "暗証番号") + "でロックしています。開き直したときと、1分以上ほかのアプリにいたときにロックされます。",
@@ -233,8 +233,8 @@ const L = {
     chOpen: "See it in the Token Charter", chAt: d => "Rated on " + d, chSrc: "Sources", chConfK: { high: "High", medium: "Medium", low: "Low" },
     lk: "Lock", lkOffNote: "Locking encrypts the coins and amounts saved on this device. You'll need a passkey or PIN each time you open it.",
     lkWarn: "If you lose the passkey or PIN, the data can't be recovered. Export a backup above first.",
-    lkPass: "Lock with a passkey", lkPin: "Lock with a PIN", lkPinL: "PIN (6 or more characters)", lkPin2: "Once more", lkSet: "Lock",
-    lkShort: "Use 6 or more characters.", lkDiff: "The two PINs don't match.",
+    lkPass: "Lock with a passkey", lkPin: "Lock with a PIN", lkPinL: "PIN (6 or more digits)", lkPin2: "Once more", lkSet: "Lock",
+    lkShort: "Use 6 or more digits.", lkDiff: "The two PINs don't match.",
     lkNoPrf: "This device's passkey can't be used as a lock. Use a PIN instead.",
     lkFail: "Couldn't lock. Your data is unchanged.", lkOn: "Locked",
     lkOnNote: k => "Locked with a " + (k === "passkey" ? "passkey" : "PIN") + ". It locks when you reopen the app, or after a minute in another app.",
@@ -268,7 +268,8 @@ function save() {
   if (!LOCK) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast(t("noStore")); } return; }
   if (!CK) return;   // 鍵がかかっている画面では書かない
   const snap = JSON.parse(JSON.stringify(S)), key = CK, lk = LOCK;
-  saving = saving.then(async () => { const box = await seal(key, snap); localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: lk, lang: snap.settings.lang }, box))); }).catch(() => toast(t("noStore")));
+  saving = saving.then(async () => { const box = await seal(key, snap); if (LOCK !== lk) return;   // そのあいだにロックを外した・消去したときは書かない
+    localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: lk, lang: snap.settings.lang }, box))); }).catch(() => toast(t("noStore")));
 }
 const te = new TextEncoder(), td = new TextDecoder();
 const b64 = u => { let x = ""; new Uint8Array(u).forEach(c => x += String.fromCharCode(c)); return btoa(x); };
@@ -294,14 +295,17 @@ async function passkeyLock() {
   const bytes = r.results && r.results.first ? new Uint8Array(r.results.first) : await passkeyBytes(c.rawId, salt);
   return { lock: { kind: "passkey", salt: b64(salt), cred: b64(c.rawId) }, key: await prfKey(bytes, salt) };
 }
-async function pinLock(pin) { const salt = rnd(16); return { lock: { kind: "pin", salt: b64(salt) }, key: await pinKey(pin, salt) }; }
+async function pinLock(pin) { const salt = rnd(16); return { lock: { kind: "pin", num: true, salt: b64(salt) }, key: await pinKey(pin, salt) }; }
+const NUMPAD = 'inputmode="numeric" pattern="[0-9]*"';
 // 鍵をかける：書いたものを読み戻して開けられると確かめてから、鍵つきにする
 async function enableLock(got) {
   await saving;
-  const box = await seal(got.key, S);
-  if (JSON.stringify(await unseal(got.key, box)) !== JSON.stringify(S)) throw new Error("verify");
-  localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: got.lock, lang: S.settings.lang }, box)));
+  const snap = JSON.parse(JSON.stringify(S));   // 確かめているあいだに価格が更新されても、比べる中身が変わらないように
+  const box = await seal(got.key, snap);
+  if (JSON.stringify(await unseal(got.key, box)) !== JSON.stringify(snap)) throw new Error("verify");
+  localStorage.setItem(KEY, JSON.stringify(Object.assign({ lock: got.lock, lang: snap.settings.lang }, box)));
   LOCK = got.lock; CK = got.key;
+  save();   // 確かめているあいだの変更も、暗号にして保存する
 }
 async function disableLock() { await saving; LOCK = null; CK = null; save(); }
 async function unlockWith(key) {
@@ -639,8 +643,8 @@ function openSettings() {
     <div id="l-offc" hidden><p style="margin:0">${t("lkOffQ")}</p><div class="actions" style="margin-top:10px"><button class="btn danger" id="l-offy">${t("lkOffYes")}</button><button class="btn sub" id="l-offn">${t("cancel")}</button></div></div>`
     : `<p class="note" style="margin:0">${t("lkOffNote")}</p><p class="note" style="margin:0">${t("lkWarn")}</p>
     <div class="actions">${window.PublicKeyCredential ? `<button class="btn sub" id="l-pass">${t("lkPass")}</button>` : ""}<button class="btn sub" id="l-pin">${t("lkPin")}</button></div>
-    <div id="l-pinf" hidden><label class="f" for="pin1">${t("lkPinL")}<input class="inp" id="pin1" type="password" autocomplete="new-password"></label>
-    <label class="f" for="pin2">${t("lkPin2")}<input class="inp" id="pin2" type="password" autocomplete="new-password"></label>
+    <div id="l-pinf" hidden><label class="f" for="pin1">${t("lkPinL")}<input class="inp" id="pin1" type="password" ${NUMPAD} autocomplete="new-password"></label>
+    <label class="f" for="pin2">${t("lkPin2")}<input class="inp" id="pin2" type="password" ${NUMPAD} autocomplete="new-password"></label>
     <div class="actions"><button class="btn" id="l-set">${t("lkSet")}</button></div></div>`}
     <p class="note" id="l-msg" style="margin:0"></p>
     <hr class="hr">
@@ -678,8 +682,8 @@ function openSettings() {
       if ($("#l-pass")) $("#l-pass").onclick = () => turnOn(passkeyLock);
       $("#l-pin").onclick = () => { $("#l-pinf").hidden = false; $("#pin1").focus(); };
       $("#l-set").onclick = () => {
-        const a = $("#pin1").value, b = $("#pin2").value;
-        if (a.length < 6) return lmsg(t("lkShort"));
+        const a = toHalf($("#pin1").value.trim()), b = toHalf($("#pin2").value.trim());
+        if (!/^[0-9]{6,}$/.test(a)) return lmsg(t("lkShort"));
         if (a !== b) return lmsg(t("lkDiff"));
         turnOn(() => pinLock(a));
       };
@@ -691,7 +695,7 @@ function renderLock() {
   const pin = LOCK.kind === "pin";
   $("#view").innerHTML = `<section class="empty">
     <h2>${t("lkH")}</h2>
-    ${pin ? `<label class="f" for="lk-pin" style="width:100%;text-align:left">${t("lkPinL")}<input class="inp" id="lk-pin" type="password" autocomplete="current-password"></label>` : ""}
+    ${pin ? `<label class="f" for="lk-pin" style="width:100%;text-align:left">${LOCK.num ? t("lkPinL") : t("lkPinL").replace(/（.*）| \(.*\)/, "")}<input class="inp" id="lk-pin" type="password" ${LOCK.num ? NUMPAD : ""} autocomplete="current-password"></label>` : ""}
     <div class="actions" style="width:100%"><button class="btn" id="lk-open">${pin ? t("lkOpen") : t("lkOpenPass")}</button></div>
     <p class="note" id="lk-msg" style="margin:0" role="status"></p>
   </section>
@@ -705,7 +709,7 @@ function renderLock() {
     if (busy) return; busy = true; msg(t("lkWorking"));
     try {
       const salt = unb64(LOCK.salt);
-      const key = pin ? await pinKey($("#lk-pin").value, salt) : await prfKey(await passkeyBytes(unb64(LOCK.cred), salt), salt);
+      const key = pin ? await pinKey(LOCK.num ? toHalf($("#lk-pin").value.trim()) : $("#lk-pin").value, salt) : await prfKey(await passkeyBytes(unb64(LOCK.cred), salt), salt);
       await unlockWith(key);
       S.holdings.forEach(x => { if (!x.uid) x.uid = Math.random().toString(36).slice(2, 10); });
       render(); schedule(); refresh();
