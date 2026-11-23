@@ -93,10 +93,9 @@ textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
 .note a{color:var(--accent)}
 .sect{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:4px 4px -6px}
 /* 7日間の小さなチャート・銘柄の詳細・トークン憲章 */
-.row.has-spark{grid-template-columns:auto 1fr auto auto}
-.spark{width:56px;height:24px;display:block}
+.spark{width:64px;height:18px;display:block;margin:2px 0}
 .spark path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-@media (max-width:359px){.spark{display:none}.row.has-spark{grid-template-columns:auto 1fr auto}}
+
 .coin-head{display:flex;align-items:center;gap:12px;min-width:0}
 .coin-head .t{display:flex;flex-direction:column;min-width:0}
 .coin-head .t b{font-size:18px}
@@ -173,7 +172,7 @@ const L = {
     fileSaved: "ファイルを保存しました。", impOk: n => n + "銘柄を読み込みました", impFail: "読み込めませんでした。書き出した内容をそのまま貼り付けてください。",
     wipe: "すべて消去", wipeQ: "登録した銘柄と枚数をすべて消去します。元に戻せません。", wipeYes: "消去する", wiped: "消去しました",
     safety: "残高帳は送金や署名の機能を持たず、秘密鍵・復元フレーズ・ウォレットのアドレスを一切扱いません。これらの入力を求める画面が出たら、偽物です。",
-    jpy: "日本円（JPY）", usd: "米ドル（USD）", locale: "ja-JP",
+    jpy: "日本円（JPY）", usd: "米ドル（USD）", locale: "ja-JP", charts: "一覧に7日間のチャートを出す",
     ranges: ["1日", "7日", "30日", "1年"], chartLoading: "チャートを読み込み中…", chartFail: "チャートを読み込めませんでした。少し待ってから開き直してください。",
     hold: "持っている分", editAmt: "枚数を直す", spark7: "7日間の値動き",
     ch: "トークン憲章", chLoading: "トークン憲章を確かめています…", chNone: "この銘柄は、トークン憲章でまだ評価していません。",
@@ -211,7 +210,7 @@ const L = {
     fileSaved: "File saved.", impOk: n => n + " coins restored", impFail: "Couldn't restore. Paste the export exactly as it was saved.",
     wipe: "Erase everything", wipeQ: "This erases every coin and amount you added. It can't be undone.", wipeYes: "Erase", wiped: "Erased",
     safety: "Zandaka can't send or sign anything, and never asks for private keys, recovery phrases or wallet addresses. Any screen that asks for these is fake.",
-    jpy: "Japanese yen (JPY)", usd: "US dollar (USD)", locale: "en-US",
+    jpy: "Japanese yen (JPY)", usd: "US dollar (USD)", locale: "en-US", charts: "Show 7-day charts in the list",
     ranges: ["1D", "7D", "30D", "1Y"], chartLoading: "Loading chart…", chartFail: "Couldn't load the chart. Wait a moment and open it again.",
     hold: "Your holding", editAmt: "Edit amount", spark7: "Last 7 days",
     ch: "Token Charter", chLoading: "Checking the Token Charter…", chNone: "The Token Charter hasn't rated this coin yet.",
@@ -224,7 +223,7 @@ const L = {
 /* ===== 保存（この端末の中だけ） ===== */
 const KEY = "zandaka.v1";
 const sysLang = (navigator.language || "ja").toLowerCase().startsWith("ja") ? "ja" : "en";
-const DEFAULT = { holdings: [], prices: {}, icons: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false } };
+const DEFAULT = { holdings: [], prices: {}, icons: {}, updatedAt: null, settings: { lang: sysLang, currency: sysLang === "ja" ? "jpy" : "usd", apiKey: "", interval: 120, hide: false, charts: true } };
 function fresh() { return JSON.parse(JSON.stringify(DEFAULT)); }
 function load() {
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.holdings)) return Object.assign(fresh(), s, { settings: Object.assign({}, DEFAULT.settings, s.settings || {}) }); } catch (e) {}
@@ -309,7 +308,7 @@ function badge(h) {
 }
 function sparkSvg(pts) {
   if (!Array.isArray(pts) || pts.length < 2) return "";
-  const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, W = 56, H = 24;
+  const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, W = 64, H = 18;
   const d = pts.map((p, i) => (i ? "L" : "M") + (i * (W - 2) / (pts.length - 1) + 1).toFixed(1) + " " + (H - 2 - (p - lo) / span * (H - 4)).toFixed(1)).join("");
   const cls = pts[pts.length - 1] > pts[0] ? "up" : pts[pts.length - 1] < pts[0] ? "down" : "muted";
   return `<svg class="spark ${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("spark7")}"><path d="${d}"/></svg>`;
@@ -375,11 +374,11 @@ function render() {
     ${sample ? `<p class="note" style="margin:0">${t("sampleNote")}</p>` : ""}
     <ul class="list">${rows.map(r => {
       const dev = anyTarget && r.h.target > 0 && r.share != null ? r.share - r.h.target : null;
-      const sp = r.p != null ? sparkSvg((S.prices[r.h.id] || {}).s) : "";
-      return `<li><button class="row${sp ? " has-spark" : ""}" data-id="${esc(r.h.uid)}">
+      const sp = r.p != null && S.settings.charts !== false ? sparkSvg((S.prices[r.h.id] || {}).s) : "";
+      return `<li><button class="row" data-id="${esc(r.h.uid)}">
         ${badge(r.h)}
-        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>${sp}
-        <span class="right"><span class="val num amtv">${money(r.v)}</span>
+        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>
+        <span class="right"><span class="val num amtv">${money(r.v)}</span>${sp}
           <span class="meta num"><span class="${r.c > 0 ? "up" : r.c < 0 ? "down" : ""}">${pct(r.c, true)}</span> · ${pct(r.share)}</span>
           ${dev != null ? `<span class="tgt num ${Math.abs(dev) >= 5 ? "down" : "muted"}">${t("target")} ${pct(r.h.target)} (${dev > 0 ? "+" : ""}${dev.toFixed(1)})</span>` : ""}
         </span></button></li>`; }).join("")}</ul>
@@ -540,6 +539,7 @@ function openSettings() {
     <label class="f" for="intv">${t("intv")}<select class="inp" id="intv">${[0, 60, 120, 300].map((v, i) => opt(v, t("intvOpts")[i], st.interval)).join("")}</select></label>
     <label class="f" for="key">${t("key")}<input class="inp" id="key" value="${esc(st.apiKey)}" placeholder="${t("keyPh")}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     <p class="note" style="margin:0">${t("keyNote")}</p>
+    <label class="toggle" for="charts"><span>${t("charts")}</span><input type="checkbox" id="charts"${st.charts !== false ? " checked" : ""}></label>
     <div class="actions"><button class="btn" id="s-save">${t("save")}</button></div>
     <hr class="hr">
     <h2 style="font-size:16px">${t("backup")}</h2>
@@ -554,7 +554,7 @@ function openSettings() {
     <p class="note" style="margin:0">${t("safety")}</p>`, () => {
     $("#s-save").onclick = () => {
       const curChanged = $("#cur").value !== st.currency;
-      Object.assign(st, { lang: $("#lang").value, currency: $("#cur").value, interval: +$("#intv").value, apiKey: $("#key").value.trim() });
+      Object.assign(st, { lang: $("#lang").value, currency: $("#cur").value, interval: +$("#intv").value, apiKey: $("#key").value.trim(), charts: $("#charts").checked });
       save(); schedule(); close(); render(); toast(t("saved")); if (curChanged) refresh();
     };
     const dump = () => JSON.stringify({ app: "zandaka", v: 1, holdings: S.holdings.map(({ id, sym, name, amount, target, memo }) => ({ id, sym, name, amount, target, memo })) }, null, 1);
