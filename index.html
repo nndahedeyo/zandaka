@@ -93,7 +93,8 @@ textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
 .note a{color:var(--accent)}
 .sect{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:4px 4px -6px}
 /* 7日間の小さなチャート・銘柄の詳細・トークン憲章 */
-.spark{width:64px;height:18px;display:block;margin:2px 0}
+.row.has-spark{grid-template-columns:auto 1fr auto auto}
+.spark{width:56px;height:24px;display:block}
 .spark path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 
 .coin-head{display:flex;align-items:center;gap:12px;min-width:0}
@@ -120,6 +121,7 @@ textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
 .charter dt{font-size:12px;color:var(--muted)}
 .charter dd{margin:0;font-size:14px}
 .charter a{color:var(--accent)}
+@media (max-width:359px){.spark{display:none}.row.has-spark{grid-template-columns:auto 1fr auto}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -308,7 +310,7 @@ function badge(h) {
 }
 function sparkSvg(pts) {
   if (!Array.isArray(pts) || pts.length < 2) return "";
-  const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, W = 64, H = 18;
+  const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, W = 56, H = 24;
   const d = pts.map((p, i) => (i ? "L" : "M") + (i * (W - 2) / (pts.length - 1) + 1).toFixed(1) + " " + (H - 2 - (p - lo) / span * (H - 4)).toFixed(1)).join("");
   const cls = pts[pts.length - 1] > pts[0] ? "up" : pts[pts.length - 1] < pts[0] ? "down" : "muted";
   return `<svg class="spark ${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("spark7")}"><path d="${d}"/></svg>`;
@@ -375,10 +377,10 @@ function render() {
     <ul class="list">${rows.map(r => {
       const dev = anyTarget && r.h.target > 0 && r.share != null ? r.share - r.h.target : null;
       const sp = r.p != null && S.settings.charts !== false ? sparkSvg((S.prices[r.h.id] || {}).s) : "";
-      return `<li><button class="row" data-id="${esc(r.h.uid)}">
+      return `<li><button class="row${sp ? " has-spark" : ""}" data-id="${esc(r.h.uid)}">
         ${badge(r.h)}
-        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>
-        <span class="right"><span class="val num amtv">${money(r.v)}</span>${sp}
+        <span class="mid"><span class="sym">${esc(r.h.sym)}</span><span class="name">${esc(r.h.name)}${r.h.memo ? " · " + esc(r.h.memo) : ""}</span><span class="meta num"><span class="amtv">${qty(r.h.amount)}</span> × ${price(r.p)}</span></span>${sp}
+        <span class="right"><span class="val num amtv">${money(r.v)}</span>
           <span class="meta num"><span class="${r.c > 0 ? "up" : r.c < 0 ? "down" : ""}">${pct(r.c, true)}</span> · ${pct(r.share)}</span>
           ${dev != null ? `<span class="tgt num ${Math.abs(dev) >= 5 ? "down" : "muted"}">${t("target")} ${pct(r.h.target)} (${dev > 0 ? "+" : ""}${dev.toFixed(1)})</span>` : ""}
         </span></button></li>`; }).join("")}</ul>
