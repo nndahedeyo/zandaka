@@ -423,7 +423,9 @@ function compute() {
   const total = rows.reduce((a, r) => a + (r.v || 0), 0);
   const prev = rows.reduce((a, r) => a + (r.v != null && r.c != null ? r.v / (1 + r.c / 100) : (r.v || 0)), 0);
   rows.forEach(r => r.share = total > 0 && r.v != null ? r.v / total * 100 : null);
-  rows.sort((a, b) => (b.v ?? -1) - (a.v ?? -1));
+  // 同じ銘柄を別々の場所で登録しているときは、銘柄の合計の大きい順に並べ、同じ銘柄どうしは隣に置く
+  const byCoin = {}; rows.forEach(r => { byCoin[r.h.id] = r.v == null ? -1 : (byCoin[r.h.id] || 0) + r.v; });   // 価格は銘柄ごとなので、同じ銘柄は全部あるか全部ないか
+  rows.sort((a, b) => (byCoin[b.h.id] - byCoin[a.h.id]) || (a.h.id < b.h.id ? -1 : a.h.id > b.h.id ? 1 : 0) || ((b.v ?? -1) - (a.v ?? -1)));
   return { rows, total, chg: total - prev, chgPct: prev > 0 ? (total / prev - 1) * 100 : null };
 }
 
