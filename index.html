@@ -131,7 +131,7 @@ textarea.inp{font-family:var(--mono);font-size:12px;min-height:120px}
   <header class="top">
     <h1 id="app-title">残高帳</h1>
     <div>
-      <button class="icon-btn" id="btn-share" aria-label="割合を画像で共有" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+      <button class="icon-btn" id="btn-share" aria-label="保有銘柄の割合" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3v9.5z"/><path d="M15 3.3A9 9 0 0 1 20.7 9H15z"/></svg></button>
       <button class="icon-btn" id="btn-eye" aria-label="金額を隠す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="icon-btn" id="btn-refresh" aria-label="価格を更新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
       <button class="icon-btn" id="btn-settings" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
@@ -194,7 +194,7 @@ const L = {
     lkH: "ロックされています", lkOpen: "開ける", lkOpenPass: "パスキーで開ける", lkBad: "暗証番号が違います。", lkPassFail: "開けられませんでした。もう一度試してください。",
     lkWorking: "確かめています…", lkLost: "パスキーや暗証番号をなくしたとき",
     lkLostP: "中身は暗号になっているので、だれにも取り出せません。バックアップがあれば、消去してから読み込み直せます。", lkWipe: "消去してやり直す",
-    shBtn: "割合を画像で共有", shTitle: "保有銘柄の割合", shNote: "金額と枚数は載せていません", shOther: "その他", shBar: "帯グラフ", shPie: "円グラフ", shKind: "グラフの形", shCoins: n => n + "銘柄",
+    shBtn: "保有銘柄の割合", shTitle: "保有銘柄の割合", shNote: "金額と枚数は載せていません", shGray: n => "グラフの灰色は、" + n + "位以下の合計です", shBar: "帯グラフ", shPie: "円グラフ", shKind: "グラフの形", shCoins: n => n + "銘柄",
     shSave: "画像を保存", shShare: "共有する", shNone: "価格が取れた銘柄がまだありません。価格を更新してから試してください。",
     shSample: "例の枚数での見本です", shMaking: "画像を作っています…", shHint: "金額と枚数は入りません。「共有する」でXなどにそのまま送れます。", shHintX: "金額と枚数は入りません。画像を保存してから「Xに投稿」を押し、保存した画像を添えてください。", shX: "Xに投稿", shText: "保有銘柄の割合を残高帳で画像にしました（金額と枚数は載せていません）", shFail: "画像を作れませんでした"
   },
@@ -246,7 +246,7 @@ const L = {
     lkH: "Locked", lkOpen: "Open", lkOpenPass: "Open with passkey", lkBad: "Wrong PIN.", lkPassFail: "Couldn't open. Try again.",
     lkWorking: "Checking…", lkLost: "Lost your passkey or PIN?",
     lkLostP: "The data is encrypted, so no one can recover it. If you have a backup, erase and restore it.", lkWipe: "Erase and start over",
-    shBtn: "Share shares as an image", shTitle: "My holdings by share", shNote: "No amounts or holdings shown", shOther: "Other", shBar: "Bar", shPie: "Pie", shKind: "Chart type", shCoins: n => n + (n === 1 ? " coin" : " coins"),
+    shBtn: "Holdings by share", shTitle: "My holdings by share", shNote: "No amounts or holdings shown", shGray: n => "Gray in the chart is the total from #" + n + " down", shBar: "Bar", shPie: "Pie", shKind: "Chart type", shCoins: n => n + (n === 1 ? " coin" : " coins"),
     shSave: "Save image", shShare: "Share", shNone: "No prices loaded yet. Refresh prices and try again.",
     shSample: "Example amounts", shMaking: "Making the image…", shHint: "No amounts or holdings are included. Tap Share to send it to X or another app.", shHintX: "No amounts or holdings are included. Save the image, tap Post on X, then attach the saved image.", shX: "Post on X", shText: "My crypto holdings by share, made with Zandaka (no amounts or holdings shown)", shFail: "Couldn't make the image"
   }
@@ -629,51 +629,48 @@ function openCoin(uid) {
   });
 }
 /* ===== 割合の共有画像：金額と枚数は入れない。端末の中で作り、外へは何も送らない ===== */
-function mixRows() {   // 同じ銘柄はまとめ、割合の大きい順。7銘柄より多ければ残りは「その他」
+function mixRows() {   // 同じ銘柄はまとめ、割合の大きい順。すべての銘柄を返す
   const { rows, total } = compute(); if (!(total > 0)) return [];
   const m = {}; rows.forEach(r => { if (r.v == null) return; const x = m[r.h.id] || (m[r.h.id] = { id: r.h.id, sym: r.h.sym, name: r.h.name, v: 0 }); x.v += r.v; });
-  const xs = Object.values(m).sort((a, b) => b.v - a.v).map(x => Object.assign(x, { p: x.v / total * 100 }));
-  if (xs.length <= 8) return xs;
-  const rest = xs.slice(7); return xs.slice(0, 7).concat([{ id: "", sym: t("shOther"), name: "", other: true, n: rest.length, p: rest.reduce((a, x) => a + x.p, 0) }]);
+  return Object.values(m).sort((a, b) => b.v - a.v).map(x => Object.assign(x, { p: x.v / total * 100 }));
 }
 function drawMix(xs, sample, kind) {
-  const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  const PAL = ["#1B5E63", "#3E7CB1", "#E0A030", "#C4527A", "#7A4FA3", "#5BA37E", "#B5602A", "#2A9DB0", "#8A8F2E", "#D2705C", "#4F5BA8", "#9C6B3E"];   // 隣どうしで見分けやすい12色
+  const NC = PAL.length, GRAY = "#B4BCC8", many = xs.length > NC;
+  const pie = kind === "pie", n = xs.length, cols = pie ? 2 : 1, rh = pie ? (n <= 8 ? 72 : 60) : (n <= 8 ? 88 : 64);
+  const y0 = pie ? 880 : 480, last = y0 + (Math.ceil(n / cols) - 1) * rh, foot = last + (many ? 64 : 0);
+  const W = 1080, H = Math.max(1350, foot + 260), c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
   const F = (w, px) => `${w} ${px}px "Hiragino Sans","Noto Sans JP","Noto Sans CJK JP","Yu Gothic",system-ui,sans-serif`;
   const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
   const fit = (txt, w) => { let s2 = txt; while (s2.length > 1 && g.measureText(s2).width > w) s2 = s2.slice(0, -1); return s2 === txt ? txt : s2.slice(0, -1) + "…"; };
-  const PAL = ["#1B5E63", "#3E7CB1", "#E0A030", "#C4527A", "#7A4FA3", "#5BA37E", "#B5602A"];   // 隣どうしで見分けやすい色
-  const col = x => x.other ? "#9AA6B6" : PAL[xs.indexOf(x) % PAL.length];
+  const col = i => i < NC ? PAL[i] : GRAY;
   const pc = p => (p < 0.1 ? "<0.1" : p.toFixed(1)) + "%";
+  // グラフに描く区切り：12位までと、13位以下の合計
+  const segs = xs.slice(0, NC).map((x, i) => ({ p: x.p, c: col(i) })); if (many) segs.push({ p: xs.slice(NC).reduce((a, x) => a + x.p, 0), c: GRAY });
   g.fillStyle = "#F3F5F8"; g.fillRect(0, 0, W, H);
   g.fillStyle = "#FFFFFF"; rr(48, 48, W - 96, H - 96, 40); g.fill();
   g.textBaseline = "alphabetic"; g.fillStyle = "#1B5E63"; g.font = F(700, 30); g.fillText(t("app"), 108, 140);
   g.fillStyle = "#16202E"; g.font = F(800, 64); g.fillText(fit(t("shTitle"), W - 216), 108, 222);
   g.fillStyle = "#5B6676"; g.font = F(400, 28); g.fillText(new Date().toLocaleDateString(loc(), { year: "numeric", month: "long", day: "numeric" }) + (sample ? "　· " + t("shSample") : ""), 108, 272);
-  if (kind === "pie") {
-    // 円グラフ（真ん中に銘柄の数）と、2列の一覧
+  if (pie) {
     const cx = W / 2, cy = 560, R = 230, r0 = 130; let a0 = -Math.PI / 2;
-    xs.forEach(x => { const a1 = a0 + Math.PI * 2 * x.p / 100; g.beginPath(); g.arc(cx, cy, R, a0, a1); g.arc(cx, cy, r0, a1, a0, true); g.closePath(); g.fillStyle = col(x); g.fill();
-      if (xs.length > 1) { g.strokeStyle = "#FFFFFF"; g.lineWidth = 4; g.stroke(); } a0 = a1; });
-    const n = xs.reduce((a, x) => a + (x.other ? x.n : 1), 0);
+    segs.forEach(sg => { const a1 = a0 + Math.PI * 2 * sg.p / 100; g.beginPath(); g.arc(cx, cy, R, a0, a1); g.arc(cx, cy, r0, a1, a0, true); g.closePath(); g.fillStyle = sg.c; g.fill();
+      if (segs.length > 1) { g.strokeStyle = "#FFFFFF"; g.lineWidth = 4; g.stroke(); } a0 = a1; });
     g.fillStyle = "#16202E"; g.font = F(800, 56); g.textAlign = "center"; g.fillText(String(n), cx, cy + 8); g.fillStyle = "#5B6676"; g.font = F(400, 26); g.fillText(t("shCoins")(n).replace(/^\d+\s*/, ""), cx, cy + 48); g.textAlign = "left";
-    const colW = (W - 216 - 40) / 2;
-    xs.forEach((x, i) => { const cxi = 108 + (i % 2) * (colW + 40), y = 880 + Math.floor(i / 2) * 72;
-      g.fillStyle = col(x); g.beginPath(); g.arc(cxi + 14, y - 12, 13, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#16202E"; g.font = F(700, 36); g.fillText(fit(x.sym, colW - 190), cxi + 40, y);
-      g.font = F(700, 36); g.textAlign = "right"; g.fillText(pc(x.p), cxi + colW, y); g.textAlign = "left"; });
   } else {
-    // 帯グラフと一覧
     const bx = 108, bw = W - 216, by = 316, bh = 72; g.save(); rr(bx, by, bw, bh, 20); g.clip(); let x0 = bx;
-    xs.forEach((x, i) => { const w = i === xs.length - 1 ? bx + bw - x0 : bw * x.p / 100; g.fillStyle = col(x); g.fillRect(x0, by, w + 1, bh); x0 += w; }); g.restore();
-    let y = 480;
-    xs.forEach(x => {
-      g.fillStyle = col(x); g.beginPath(); g.arc(124, y - 12, 14, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#16202E"; g.font = F(700, 40); const sym = fit(x.sym, 300); g.fillText(sym, 156, y);
-      const sw = g.measureText(sym).width; g.fillStyle = "#5B6676"; g.font = F(400, 26); g.fillText(fit(x.name || "", 640 - sw - 156), 156 + sw + 16, y);
-      g.fillStyle = "#16202E"; g.font = F(700, 44); g.textAlign = "right"; g.fillText(pc(x.p), W - 108, y + 2); g.textAlign = "left";
-      y += 88;
-    });
+    segs.forEach((sg, i) => { const w = i === segs.length - 1 ? bx + bw - x0 : bw * sg.p / 100; g.fillStyle = sg.c; g.fillRect(x0, by, w + 1, bh); x0 += w; }); g.restore();
   }
+  // 文字の一覧：すべての銘柄と割合
+  const colW = (W - 216 - (cols - 1) * 40) / cols, fs = n <= 8 ? (pie ? 36 : 40) : (pie ? 30 : 32);
+  xs.forEach((x, i) => {
+    const cx0 = 108 + (i % cols) * (colW + 40), y = y0 + Math.floor(i / cols) * rh;
+    g.fillStyle = col(i); g.beginPath(); g.arc(cx0 + 14, y - fs * 0.3, fs * 0.33, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#16202E"; g.font = F(700, fs); g.textAlign = "right"; g.fillText(pc(x.p), cx0 + colW, y); const pw = g.measureText("100.0%").width; g.textAlign = "left";
+    const sym = fit(x.sym, colW - pw - 70); g.fillText(sym, cx0 + 40, y);
+    if (!pie) { const sw = g.measureText(sym).width; g.fillStyle = "#5B6676"; g.font = F(400, Math.round(fs * 0.65)); g.fillText(fit(x.name || "", colW - pw - 70 - sw - 30), cx0 + 40 + sw + 16, y); }
+  });
+  if (many) { g.fillStyle = "#5B6676"; g.font = F(400, 24); g.fillText(t("shGray")(NC + 1), 108, foot); }
   g.strokeStyle = "#D8DEE6"; g.lineWidth = 2; g.beginPath(); g.moveTo(108, H - 200); g.lineTo(W - 108, H - 200); g.stroke();
   g.fillStyle = "#5B6676"; g.font = F(400, 26); g.fillText(t("shNote"), 108, H - 150);
   g.fillStyle = "#1B5E63"; g.font = F(700, 30); g.fillText("nndahedeyo.github.io/zandaka", 108, H - 104);
