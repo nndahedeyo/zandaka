@@ -578,7 +578,8 @@ async function loadCharter() {
 const safeUrl = u => /^https:\/\//.test(String(u || "")) ? String(u) : "";
 function charterHtml(id) {
   const tok = charter.tk.tokens.find(x => x.coingecko === id);
-  const link = `<a href="${esc(charter.page)}" target="_blank" rel="noopener">${t("chOpen")}</a>`;
+  // 憲章にある銘柄は、その銘柄の欄が開いた状態で憲章を開く（#記号）
+  const link = `<a href="${esc(charter.page + (tok ? "#" + encodeURIComponent(tok.symbol) : ""))}" target="_blank" rel="noopener">${t("chOpen")}</a>`;
   if (!tok) return `<p class="note" style="margin:0">${t("chNone")}</p>${link}`;
   const en = S.settings.lang === "en", g = charter.cr.grades, v = (tok.scores || []).filter(x => x != null);
   const n = v.length ? Math.round(v.reduce((a, b) => a + b, 0) / (2 * v.length) * 100) : null;
